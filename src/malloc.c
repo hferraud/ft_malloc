@@ -136,8 +136,10 @@ static chunk_t chunk_get(size_t size) {
     if (chunk == NULL) {
         // we didn't find any fitting chunk, so we create one
         chunk = chunk_create(zone, last_chunk, size);
+    } else {
+        chunk->free = 0;
+
     }
-    // TODO: We need to split the chunk correctly
     return chunk;
 }
 
@@ -190,9 +192,11 @@ static chunk_t chunk_create(zone_t zone, chunk_t last, size_t size) {
         last->next = new_chunk;
     }
     new_chunk->size = size;
-    new_chunk->free = 0;
     new_chunk->next = NULL;
+    new_chunk->prev = last;
+    new_chunk->magic = 0;
     new_chunk->magic |= MAGIC_SERIALIZE((uintptr_t)new_chunk->data);
+    new_chunk->free = 0;
     zone->free_space -= size + CHUNK_METADATA_SIZE;
     return new_chunk;
 }
@@ -228,6 +232,23 @@ static zone_t  zone_validate(uintptr_t addr, zone_t head) {
         head = head->next;
     }
     return NULL;
+}
+
+//TODO: doxygen
+//this function assume that chunk is wide enough to how size + another chunk of size ALIGN_SIZE
+__attribute__((unused))
+static void chunk_split(chunk_t chunk, size_t size) {
+    chunk_t new_chunk;
+
+    new_chunk = (chunk_t)(chunk->data + size);
+    new_chunk->size = chunk->size - size - CHUNK_METADATA_SIZE;
+    new_chunk->next = chunk->next;
+    new_chunk->prev = chunk;
+    new_chunk->magic = 0;
+    new_chunk->magic |= MAGIC_DESERIALIZE((uintptr_t)new_chunk->data);
+    new_chunk->free = 1;
+    chunk->size = size;
+    chunk->next = new_chunk;
 }
 
 static void chunk_fusion(chunk_t chunk) {
