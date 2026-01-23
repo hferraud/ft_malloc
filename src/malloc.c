@@ -16,6 +16,8 @@
 
 #define ALIGN_SIZE      alignof(max_align_t)
 #define ALIGN_MEM(x)    ((x + ALIGN_SIZE - 1) & ~(ALIGN_SIZE - 1))
+#define MAGIC_SERIALIZE(x) (x << 8)
+#define MAGIC_DESERIALIZE(x) (x >> 8)
 
 typedef struct chunk_s *chunk_t;
 typedef struct zone_s *zone_t;
@@ -24,9 +26,10 @@ struct chunk_s {
     size_t          size;
     struct chunk_s  *next;
     struct chunk_s  *prev;
-    uint8_t         free;
-    //TODO maybe use union
-    uint8_t         magic[7]; // Used for free ptr validation
+    union {
+        uint8_t     free;
+        uintptr_t   magic; // Used for free ptr validation
+    };
     uint8_t         data[1];
 };
 
@@ -189,33 +192,27 @@ static chunk_t chunk_create(zone_t zone, chunk_t last, size_t size) {
     new_chunk->size = size;
     new_chunk->free = 0;
     new_chunk->next = NULL;
-    uintptr_t data_ptr = (uintptr_t)new_chunk->data;
-    data_ptr <<= 8; // we shift the new_chunk->data since new_chunk->magic is only 7 bytes
-    uint64_t *magic_ptr = (uint64_t*)new_chunk->magic;
-    *magic_ptr &= 0xff; // zeroes new_chunk->magic except the last bytes
-    *magic_ptr |= data_ptr;
+    new_chunk->magic |= MAGIC_SERIALIZE((uintptr_t)new_chunk->data);
     zone->free_space -= size + CHUNK_METADATA_SIZE;
     return new_chunk;
 }
 
 static chunk_t  chunk_validate(void *addr, zone_t *zone) {
     chunk_t chunk = (chunk_t)(addr - CHUNK_METADATA_SIZE);
-    uintptr_t magic = *(uintptr_t *)chunk->magic;
-    uintptr_t data = (uintptr_t)chunk->data;
+    uintptr_t magic;
+    uintptr_t data;
     //TODO first validate that the address is in a zone range
     //we check if the address is in a tiny zone
-    *zone = zone_validate(data, tiny_head);
+    *zone = zone_validate((uintptr_t)addr, tiny_head);
     if (*zone == NULL) {
         //if not we check the small zone
-        *zone = zone_validate(data, small_head);
+        *zone = zone_validate((uintptr_t)addr, small_head);
     }
 
-    //since magic is only 7 bytes long:
-    // - we shift magic one byte to the right
-    // - we remove the upper byte of chunk->data
-    printf("magic before: %lx\n", magic);
-    magic >>= 8;
-    data = (data << 8) >> 8;
+    // we deserialize chunk->magic to remove chunk->free
+    magic = MAGIC_DESERIALIZE(chunk->magic);
+    // we serialize and deserialize chunk->data reproduce the same process magic goes though
+    data = MAGIC_DESERIALIZE(MAGIC_SERIALIZE((uintptr_t)chunk->data));
 
     printf("magic: %lx\n", magic);
     printf("data:  %lx\n", data);
