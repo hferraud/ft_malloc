@@ -1,18 +1,19 @@
 #include <stdio.h>
-#include <error.h>
-#include <errno.h>
-#include <unistd.h>
+#include <stdlib.h>
 
 #include "malloc.h"
-#include "stdlib.h"
 
 int main(void) {
-    // char * str2 = malloc(10);
-    // printf("malloc returned %p\n", str2);
-    char * str = ft_malloc(10);
-    if (!str) {
-        error(EXIT_FAILURE, errno, "malloc failed");
-    }
-    printf("ft_malloc returned %p\n", str);
-    // printf("ft_malloc returned %p\n", str2);
+    // for (int i = 0; i < 128; i++) {
+    //     printf("%d\n", i);
+    //     ft_malloc(128);
+    // }
+    char *data1 = ft_malloc(64);
+    char *data2 = ft_malloc(64);
+    char *data3 = ft_malloc(64);
+    data3[0] = 0xff;
+    ft_free(data1);
+    ft_free(data2);
+
+    show_alloc_mem();
 }
