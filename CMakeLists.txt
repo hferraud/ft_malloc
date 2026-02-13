@@ -21,6 +21,7 @@ target_compile_options(malloc PRIVATE
 
 add_executable(main
         ${SRC_DIR}/main.c
+        test/test_malloc.c
 )
 
 target_compile_options(main PRIVATE

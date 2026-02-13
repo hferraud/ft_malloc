@@ -11,8 +11,8 @@
 #define CHUNK_PER_ZONE      128
 #define TINY_CHUNK_SIZE     128
 #define SMALL_CHUNK_SIZE    4096
-#define CHUNK_METADATA_SIZE 32
-#define ZONE_METADATA_SIZE  32
+#define CHUNK_METADATA_SIZE (sizeof(void*) * 3 + sizeof(size_t))
+#define ZONE_METADATA_SIZE  (sizeof(void*) + sizeof(size_t))
 
 #define ALIGN_SIZE      alignof(max_align_t)
 #define ALIGN_MEM(x)    ((x + ALIGN_SIZE - 1) & ~(ALIGN_SIZE - 1))
@@ -35,18 +35,15 @@ struct chunk_s {
 
 struct zone_s {
     size_t              size;
-    size_t              free_space;
-    chunk_t             chunk;
     struct zone_s       *next;
-    uint8_t             data[1];
-    //TODO: chunk == data, maybe we don't need the field
+    chunk_t             data[1];
 };
 
 static chunk_t  chunk_get(size_t size);
-static zone_t   zone_search(zone_t head, zone_t *last, size_t size);
-static chunk_t  chunk_search(chunk_t head, chunk_t *last, size_t size);
+static chunk_t  zone_search(zone_t z_head, zone_t *z_last, size_t size);
+static chunk_t  chunk_search(chunk_t c_head, size_t size);
 static zone_t   zone_create(zone_t last, size_t size);
-static chunk_t  chunk_create(zone_t zone, chunk_t last, size_t size);
+static chunk_t  chunk_create(chunk_t *head, size_t size);
 static void     chunk_split(chunk_t chunk, size_t size);
 static void     chunk_fusion_prev(chunk_t chunk);
 static void     chunk_fusion_next(chunk_t chunk);
@@ -59,6 +56,7 @@ static void     zone_show_mem(zone_t zone);
 static void     chunk_show_mem(chunk_t chunk);
 static chunk_t  chunk_validate(void *addr, zone_t *zone);
 static zone_t   zone_validate(uintptr_t addr, zone_t head);
+static chunk_t  zone_get_chunk(zone_t zone);
 
 static zone_t tiny_head = NULL;
 static zone_t small_head = NULL;
@@ -103,7 +101,6 @@ void ft_free(void *ptr) {
         }
     }
     if (zone) {
-        zone->free_space += chunk->size + CHUNK_METADATA_SIZE;
         chunk->free = 1;
         chunk_fusion(chunk);
     }
@@ -141,7 +138,7 @@ void *ft_realloc(void *ptr, size_t size) {
             chunk_split(chunk, size);
         }
     } else {
-        // We need to do realloc a new block
+        //No space, we need to allocate a new block
         printf("New block\n");
         new_chunk = chunk_get(size);
         chunk_copy(chunk, new_chunk);
@@ -155,52 +152,38 @@ static chunk_t chunk_get(size_t size) {
     zone_t *zone_head;
     zone_t zone;
     zone_t last_zone;
-    chunk_t *chunk_head;
     chunk_t chunk;
-    chunk_t last_chunk;
 
+    zone_head = NULL;
     if (size <= TINY_CHUNK_SIZE) {
         zone_head = &tiny_head;
     } else if (size <= SMALL_CHUNK_SIZE) {
         zone_head = &small_head;
-    } else {
-        chunk_head = &large_head;
-        zone = NULL;
-        goto skip_zone_search;
     }
 
-    last_zone = NULL;
-    // we search for a zone with sufficient free space
-    zone = zone_search(*zone_head, &last_zone, size);
-    if (zone == NULL) {
-        // we didn't find any fitting zone, so we create one
-        zone = zone_create(last_zone, size);
-        if (zone == NULL) {
-            //mmap failed so we return NULL
-            return NULL;
+    if (zone_head != NULL) {
+        last_zone = NULL;
+        chunk = zone_search(*zone_head, &last_zone, size);
+        if (chunk == NULL) {
+            //If no chunk were found this mean we need to allocate more space
+            zone = zone_create(last_zone, size);
+            if (zone == NULL) {
+                return NULL;
+            }
+            if (*zone_head == NULL) {
+                *zone_head = zone;
+            }
+            chunk = zone_get_chunk(zone);
         }
-        if (*zone_head == NULL) {
-            *zone_head = zone;
-        }
-    }
-    chunk_head = &zone->chunk;
-
-    skip_zone_search:
-    last_chunk = NULL;
-    // we search for a free chunk of sufficient size
-    chunk = chunk_search(*chunk_head, &last_chunk, size);
-    if (chunk == NULL) {
-        //we didn't find any fitting chunk, so we create one
-        chunk = chunk_create(zone, last_chunk, size);
-        if (*chunk_head == NULL) {
-            *chunk_head = chunk;
-        }
-    } else {
-        //we split the chunk if it is big enough
         if (chunk->size >= size + CHUNK_METADATA_SIZE + ALIGN_SIZE) {
             chunk_split(chunk, size);
         }
         chunk->free = 0;
+    } else {
+        chunk = chunk_create(&large_head, size);
+        if (chunk == NULL) {
+            return NULL;
+        }
     }
     return chunk;
 }
@@ -215,14 +198,10 @@ static zone_t zone_create(zone_t last, size_t size) {
         printf("TINY\n");
         zone_size = TINY_CHUNK_SIZE * CHUNK_PER_ZONE + ZONE_METADATA_SIZE;
         zone_size += page_size - zone_size % page_size;
-    } else if (size <= SMALL_CHUNK_SIZE) {
+    } else {
         printf("SMALL\n");
         zone_size = SMALL_CHUNK_SIZE * CHUNK_PER_ZONE + ZONE_METADATA_SIZE;
         zone_size += page_size - zone_size % page_size;
-    } else {
-        //TODO: Handle large zones
-        dprintf(STDERR_FILENO, "zone_create(): size too big\n");
-        return NULL;
     }
     new_zone = mmap(
         NULL,
@@ -237,51 +216,52 @@ static zone_t zone_create(zone_t last, size_t size) {
     if (last != NULL) {
         last->next = new_zone;
     }
-    new_zone->size = zone_size;
-    new_zone->free_space = new_zone->size;
     new_zone->next = NULL;
-    new_zone->chunk = NULL;
+    new_zone->size = zone_size;
+    //Now we add free chunk of the size of the remaining space
+    chunk_t new_chunk = zone_get_chunk(new_zone);
+    new_chunk->size = zone_size - ZONE_METADATA_SIZE - CHUNK_METADATA_SIZE;
+    new_chunk->next = NULL;
+    new_chunk->prev = NULL;
+    new_chunk->magic = 0;
+    new_chunk->magic |= MAGIC_SERIALIZE((uintptr_t)new_chunk->data);
+    new_chunk->free = 1;
     return new_zone;
 }
 
-static chunk_t chunk_create(zone_t zone, chunk_t last, size_t size) {
+static chunk_t chunk_create(chunk_t *head, size_t size) {
     chunk_t new_chunk;
 
-    if (zone == NULL) {
-        //We are dealing with a large chunk so we need to allocate space
-        new_chunk = mmap(
-            NULL,
-            size + CHUNK_METADATA_SIZE,
-            PROT_READ | PROT_WRITE,
-            MAP_PRIVATE | MAP_ANONYMOUS,
-            -1,
-            0);
-        //TODO: check this
-        //We may allocate a bit more space than needed due to page boundaries
-        //but since the allocation needs to be contiguous and large chunks are
-        //bigger than a page, we can't really reuse this unused space
-        if (new_chunk == MAP_FAILED) {
-            return NULL;
-        }
-    }
-    else if (last == NULL) {
-        new_chunk = (chunk_t)zone->data;
-    }
-    else {
-        new_chunk = (chunk_t)(last->data + last->size);
-    }
-    if (last != NULL) {
-        last->next = new_chunk;
+    new_chunk = mmap(
+        NULL,
+        size + CHUNK_METADATA_SIZE,
+        PROT_READ | PROT_WRITE,
+        MAP_PRIVATE | MAP_ANONYMOUS,
+        -1,
+        0);
+    //TODO: check this
+    //We may allocate a bit more space than needed due to page boundaries
+    //but since the allocation needs to be contiguous and large chunks are
+    //bigger than a page, we can't really reuse this unused space
+    if (new_chunk == MAP_FAILED) {
+        return NULL;
     }
     new_chunk->size = size;
     new_chunk->next = NULL;
-    new_chunk->prev = last;
     new_chunk->magic = 0;
     new_chunk->magic |= MAGIC_SERIALIZE((uintptr_t)new_chunk->data);
-    new_chunk->free = 0;
-    if (zone != NULL) {
-        zone->free_space -= size + CHUNK_METADATA_SIZE;
+    if (*head == NULL) {
+        new_chunk->prev = NULL;
+        *head = new_chunk;
+    } else {
+        chunk_t it = *head;
+        while (it->next) {
+            it = it->next;
+        }
+        new_chunk->prev = it;
+        it->next = new_chunk;
     }
+    new_chunk->free = 0;
     return new_chunk;
 }
 
@@ -289,7 +269,6 @@ static chunk_t  chunk_validate(void *addr, zone_t *zone) {
     chunk_t chunk = (chunk_t)(addr - CHUNK_METADATA_SIZE);
     uintptr_t magic;
     uintptr_t data;
-    //TODO first validate that the address is in a zone range
     //we check if the address is in a tiny zone
     *zone = zone_validate((uintptr_t)addr, tiny_head);
     if (*zone == NULL) {
@@ -400,30 +379,53 @@ static void chunk_copy32(chunk_t src, chunk_t dst) {
     }
 }
 
-static zone_t zone_search(zone_t head, zone_t *last, size_t size) {
-    //TODO: checking free_space isn't enough because freed chunk can add
-    //free_space and can't always be used here
-    while (head && head->free_space < size + CHUNK_METADATA_SIZE) {
-        *last = head;
-        head = head->next;
+/**
+ * @brief Search a zone list to find a chunk of wide enough to contain size
+ * @param z_head head of zones to search
+ * @param z_last last zone checked
+ * @param size size searched
+ * @return the first chunk found, NULL if no chunk fit we found
+ */
+static chunk_t zone_search(zone_t z_head, zone_t *z_last, size_t size) {
+    while (z_head) {
+        chunk_t chunk = chunk_search(zone_get_chunk(z_head), size);
+        if (chunk != NULL) {
+            return chunk;
+        }
+        *z_last = z_head;
+        z_head = z_head->next;
     }
-    return head;
+    return NULL;
 }
 
-static chunk_t chunk_search(chunk_t head, chunk_t *last, size_t size) {
-    while (head && !(head->free && head->size >= size)) {
-        *last = head;
-        head = head->next;
+/**
+ * @brief Search a chunk list to find a chunk wide enough to contain size
+ * @param c_head head of chunks to search
+ * @param size size searched
+ * @return the first chunk found, NULL if no chunk fit we found
+ */
+static chunk_t chunk_search(chunk_t c_head, size_t size) {
+    while (c_head && !(c_head->free && c_head->size >= size)) {
+        c_head = c_head->next;
     }
-    return head;
+    return c_head;
+}
+
+static chunk_t  zone_get_chunk(zone_t zone) {
+    chunk_t chunk = (chunk_t)zone->data;
+    return chunk;
 }
 
 void show_alloc_mem(void) {
     printf("--------------------\n");
-    printf("TINY : %p\n", tiny_head->data);
-    zone_show_mem(tiny_head);
-    printf("SMALL: %p\n", small_head->data);
-    zone_show_mem(small_head);
+    if (tiny_head) {
+        printf("TINY : %p\n", tiny_head->data);
+        zone_show_mem(tiny_head);
+    }
+    if (small_head) {
+        printf("SMALL: %p\n", small_head->data);
+        zone_show_mem(small_head);
+    }
     if (large_head) {
         printf("LARGE : %p\n", large_head);
         chunk_show_mem(large_head);
@@ -433,7 +435,7 @@ void show_alloc_mem(void) {
 
 static void zone_show_mem(zone_t zone) {
     while (zone) {
-        chunk_show_mem(zone->chunk);
+        chunk_show_mem(zone_get_chunk(zone));
         zone = zone->next;
     }
 }
