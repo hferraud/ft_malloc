@@ -21,7 +21,6 @@ target_compile_options(malloc PRIVATE
 
 add_executable(main
         ${SRC_DIR}/main.c
-        test/test_malloc.c
 )
 
 target_compile_options(main PRIVATE
@@ -31,3 +30,6 @@ target_compile_options(main PRIVATE
 )
 
 target_link_libraries(main malloc)
+
+# This is only used for CLion indexing
+include(ceedling/CMakeLists.txt)
