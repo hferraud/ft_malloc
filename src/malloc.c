@@ -191,18 +191,16 @@ static chunk_t chunk_get(size_t size) {
 static zone_t zone_create(zone_t last, size_t size) {
     zone_t new_zone;
     size_t zone_size;
-    int page_size = getpagesize();
+    const size_t page_size = sysconf(_SC_PAGESIZE);
 
-    printf("Creating new zone ");
     if (size <= TINY_CHUNK_SIZE) {
-        printf("TINY\n");
         zone_size = TINY_CHUNK_SIZE * CHUNK_PER_ZONE + ZONE_METADATA_SIZE;
-        zone_size += page_size - zone_size % page_size;
-    } else {
-        printf("SMALL\n");
+    } else if (size <= SMALL_CHUNK_SIZE) {
         zone_size = SMALL_CHUNK_SIZE * CHUNK_PER_ZONE + ZONE_METADATA_SIZE;
-        zone_size += page_size - zone_size % page_size;
+    } else {
+        return NULL;
     }
+    zone_size += page_size - zone_size % page_size;
     new_zone = mmap(
         NULL,
         zone_size,
@@ -380,7 +378,7 @@ static void chunk_copy32(chunk_t src, chunk_t dst) {
 }
 
 /**
- * @brief Search a zone list to find a chunk of wide enough to contain size
+ * @brief Search a zone list to find a chunk wide enough to contain size
  * @param z_head head of zones to search
  * @param z_last last zone checked
  * @param size size searched
