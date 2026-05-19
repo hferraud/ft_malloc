@@ -2,3 +2,4 @@
 .debug/
 .idea/
 cmake-build-debug/
+ceedling/build/
