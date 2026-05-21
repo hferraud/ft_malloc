@@ -5,6 +5,7 @@ add_executable(ceedling EXCLUDE_FROM_ALL
         ceedling/test/test_chunk_create.c
         ceedling/test/test_zone_create.c
         ceedling/test/test_chunk_split.c
+        ceedling/test/test_chunk_fusion.c
 )
 
 target_include_directories(ceedling PRIVATE
