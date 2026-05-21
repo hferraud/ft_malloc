@@ -26,6 +26,7 @@ void test_zone_create_large(void) {
 static void zone_create_test(size_t requested_size, size_t chunk_size) {
     zone_t zone;
     zone_t last;
+    chunk_t chunk;
     const size_t page_size = sysconf(_SC_PAGESIZE);;
 
     zone = zone_create(NULL, requested_size);
@@ -35,6 +36,15 @@ static void zone_create_test(size_t requested_size, size_t chunk_size) {
     //Zone size should be page-aligned
     TEST_ASSERT_EQUAL(zone->size % page_size, 0);
     TEST_ASSERT_GREATER_OR_EQUAL(requested_size, zone->size);
+
+    chunk = zone_get_chunk(zone);
+    TEST_ASSERT_EQUAL(chunk->size, zone->size - ZONE_METADATA_SIZE - CHUNK_METADATA_SIZE);
+    TEST_ASSERT_NULL(chunk->next);
+    TEST_ASSERT_NULL(chunk->prev);
+    TEST_ASSERT_EQUAL(chunk->free, 1);
+    TEST_ASSERT_EQUAL(chunk->data, (void*)chunk + CHUNK_METADATA_SIZE);
+    TEST_ASSERT_EQUAL(MAGIC_DESERIALIZE(chunk->magic), chunk->data);
+
     last = zone;
     zone = zone_create(last, requested_size);
     TEST_ASSERT_NOT_NULL(zone);
@@ -43,4 +53,12 @@ static void zone_create_test(size_t requested_size, size_t chunk_size) {
     //Zone size should be page-aligned
     TEST_ASSERT_EQUAL(zone->size % page_size, 0);
     TEST_ASSERT_EQUAL(last->next, zone);
+
+    chunk = zone_get_chunk(zone);
+    TEST_ASSERT_EQUAL(chunk->size, zone->size - ZONE_METADATA_SIZE - CHUNK_METADATA_SIZE);
+    TEST_ASSERT_NULL(chunk->next);
+    TEST_ASSERT_NULL(chunk->prev);
+    TEST_ASSERT_EQUAL(chunk->free, 1);
+    TEST_ASSERT_EQUAL(chunk->data, (void*)chunk + CHUNK_METADATA_SIZE);
+    TEST_ASSERT_EQUAL(MAGIC_DESERIALIZE(chunk->magic), chunk->data);
 }

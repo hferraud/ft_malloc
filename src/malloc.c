@@ -44,7 +44,7 @@ static chunk_t  zone_search(zone_t z_head, zone_t *z_last, size_t size);
 static chunk_t  chunk_search(chunk_t c_head, size_t size);
 static zone_t   zone_create(zone_t last, size_t size);
 static chunk_t  chunk_create(chunk_t *head, size_t size);
-static void     chunk_split(chunk_t chunk, size_t size);
+static chunk_t  chunk_split(chunk_t chunk, size_t size);
 static void     chunk_fusion_prev(chunk_t chunk);
 static void     chunk_fusion_next(chunk_t chunk);
 static void     chunk_fusion(chunk_t chunk);
@@ -293,11 +293,20 @@ static zone_t  zone_validate(uintptr_t addr, zone_t head) {
     return NULL;
 }
 
-//TODO: doxygen
-//this function assume that 'chunk' is wide enough to contain 'size' + CHUNK_METADATA_SIZE + ALIGN_SIZE
-static void chunk_split(chunk_t chunk, size_t size) {
+/**
+ * @brief Split \a chunk into two chunk. Afterward, \a chunk is of size \a size
+ * and chunk->next is of the remaining size.
+ * @param chunk The chunk to split
+ * @param size The new size of \a chunk
+ * @return The newly created chunk, which is also chunk->next or NULL if space
+ * was insufficient
+ */
+static chunk_t chunk_split(chunk_t chunk, size_t size) {
     chunk_t new_chunk;
 
+    if (chunk->size < size + CHUNK_METADATA_SIZE) {
+        return NULL;
+    }
     new_chunk = (chunk_t)(chunk->data + size);
     new_chunk->size = chunk->size - size - CHUNK_METADATA_SIZE;
     new_chunk->next = chunk->next;
@@ -307,6 +316,7 @@ static void chunk_split(chunk_t chunk, size_t size) {
     new_chunk->free = 1;
     chunk->size = size;
     chunk->next = new_chunk;
+    return new_chunk;
 }
 
 static void chunk_fusion(chunk_t chunk) {
