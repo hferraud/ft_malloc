@@ -16,7 +16,7 @@ void test_chunk_split_single(void) {
     chunk_t chunk;
     chunk_t head = NULL;
 
-    chunk = chunk_create(&head, OLD_SIZE);
+    chunk = chunk_create(OLD_SIZE);
     chunk_split_test(chunk, NEW_SIZE);
 }
 
@@ -26,9 +26,8 @@ void test_chunk_split_many(void) {
     const size_t NEW_SIZE_2 = 512;
 
     chunk_t chunk, new_chunk_1;
-    chunk_t head = NULL;
 
-    chunk = chunk_create(&head, OLD_SIZE);
+    chunk = chunk_create(OLD_SIZE);
     chunk_split_test(chunk, NEW_SIZE_1);
     new_chunk_1 = chunk->next;
     chunk_split_test(chunk, NEW_SIZE_2);
@@ -41,9 +40,8 @@ void test_chunk_split_filled(void) {
     const size_t NEW_SIZE = 512;
 
     chunk_t chunk;
-    chunk_t head = NULL;
 
-    chunk = chunk_create(&head, OLD_SIZE);
+    chunk = chunk_create(OLD_SIZE);
     memset(chunk->data, 0xff, chunk->size);
     chunk_split_test(chunk, NEW_SIZE);
 }

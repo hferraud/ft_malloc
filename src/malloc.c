@@ -43,7 +43,8 @@ static chunk_t  chunk_get(size_t size);
 static chunk_t  zone_search(zone_t z_head, zone_t *z_last, size_t size);
 static chunk_t  chunk_search(chunk_t c_head, size_t size);
 static zone_t   zone_create(zone_t last, size_t size);
-static chunk_t  chunk_create(chunk_t *head, size_t size);
+static chunk_t  chunk_create(size_t size);
+static void     chunk_push_back(chunk_t *head, chunk_t chunk);
 static chunk_t  chunk_split(chunk_t chunk, size_t size);
 static void     chunk_fusion_prev(chunk_t chunk);
 static void     chunk_fusion_next(chunk_t chunk);
@@ -74,6 +75,7 @@ void *ft_malloc(size_t size) {
     return chunk->data;
 }
 
+//TODO: We need to unmap the allocated space for LARGE chunks and for zones.
 void ft_free(void *ptr) {
     chunk_t chunk;
     zone_t zone;
@@ -180,10 +182,11 @@ static chunk_t chunk_get(size_t size) {
         }
         chunk->free = 0;
     } else {
-        chunk = chunk_create(&large_head, size);
+        chunk = chunk_create(size);
         if (chunk == NULL) {
             return NULL;
         }
+        chunk_push_back(&large_head, chunk);
     }
     return chunk;
 }
@@ -227,7 +230,7 @@ static zone_t zone_create(zone_t last, size_t size) {
     return new_zone;
 }
 
-static chunk_t chunk_create(chunk_t *head, size_t size) {
+static chunk_t chunk_create(size_t size) {
     chunk_t new_chunk;
 
     new_chunk = mmap(
@@ -237,7 +240,6 @@ static chunk_t chunk_create(chunk_t *head, size_t size) {
         MAP_PRIVATE | MAP_ANONYMOUS,
         -1,
         0);
-    //TODO: check this
     //We may allocate a bit more space than needed due to page boundaries
     //but since the allocation needs to be contiguous and large chunks are
     //bigger than a page, we can't really reuse this unused space
@@ -248,19 +250,21 @@ static chunk_t chunk_create(chunk_t *head, size_t size) {
     new_chunk->next = NULL;
     new_chunk->magic = 0;
     new_chunk->magic |= MAGIC_SERIALIZE((uintptr_t)new_chunk->data);
-    if (*head == NULL) {
-        new_chunk->prev = NULL;
-        *head = new_chunk;
-    } else {
-        chunk_t it = *head;
-        while (it->next) {
-            it = it->next;
-        }
-        new_chunk->prev = it;
-        it->next = new_chunk;
-    }
     new_chunk->free = 0;
     return new_chunk;
+}
+
+static void chunk_push_back(chunk_t *head, chunk_t chunk) {
+    chunk_t it = *head;
+    if (*head == NULL) {
+        *head = chunk;
+        return;
+    }
+    while (it->next) {
+        it = it->next;
+    }
+    it->next = chunk;
+    chunk->prev = it;
 }
 
 static chunk_t  chunk_validate(void *addr, zone_t *zone) {
