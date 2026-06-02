@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "malloc.h"
+#include "free.h"
 
 int main(void) {
     // char *data1 = ft_malloc(0);
@@ -21,12 +22,12 @@ int main(void) {
 
     char *data1 = ft_malloc(48);
     char *data2 = ft_malloc(64);
-    show_alloc_mem();
+    display_memory();
     ft_free(data1);
-    show_alloc_mem();
+    display_memory();
     ft_free(data2);
     char *data3 = ft_malloc(12);
-    show_alloc_mem();
+    display_memory();
     ft_free(data3);
-    show_alloc_mem();
+    display_memory();
 }

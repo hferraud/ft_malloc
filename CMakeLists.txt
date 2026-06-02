@@ -9,6 +9,11 @@ add_library(malloc SHARED)
 
 target_sources(malloc PRIVATE
         ${SRC_DIR}/malloc.c
+        ${SRC_DIR}/realloc.c
+        ${SRC_DIR}/free.c
+        ${SRC_DIR}/chunk.c
+        ${SRC_DIR}/zone.c
+        ${SRC_DIR}/display.c
 )
 
 target_include_directories(malloc PUBLIC ${CMAKE_SOURCE_DIR}/include)
@@ -21,6 +26,7 @@ target_compile_options(malloc PRIVATE
 
 add_executable(main
         ${SRC_DIR}/main.c
+        include/def.h
 )
 
 target_compile_options(main PRIVATE
