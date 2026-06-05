@@ -4,14 +4,13 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "zone.h"
-
 #define CHUNK_PER_ZONE      128
 #define TINY_CHUNK_SIZE     128
 #define SMALL_CHUNK_SIZE    4096
 #define CHUNK_METADATA_SIZE (sizeof(void*) * 3 + sizeof(size_t))
 
 typedef struct chunk_s *chunk_t;
+typedef struct zone_s *zone_t;
 
 struct chunk_s {
     size_t          size;
@@ -29,6 +28,7 @@ extern chunk_t large_head;
 chunk_t     chunk_get(size_t size);
 void        chunk_init(chunk_t chunk, size_t size);
 chunk_t     chunk_new(size_t size);
+void        chunk_push_back(chunk_t *head, chunk_t chunk);
 chunk_t     chunk_search(chunk_t c_head, size_t size);
 chunk_t     chunk_split(chunk_t chunk, size_t size);
 void        chunk_fusion(chunk_t chunk);

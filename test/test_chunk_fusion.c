@@ -1,9 +1,27 @@
 #include "unity.h"
 
-#include "../src/malloc.c"
+void test_chunk_fusion_single(void);
+void test_chunk_fusion_prev_free(void);
+void test_chunk_fusion_prev_not_free(void);
+void test_chunk_fusion_next_free(void);
+void test_chunk_fusion_next_not_free(void);
+
+#include "chunk.h"
 
 void setUp(void) {}
 void tearDown(void) {}
+
+int main (void) {
+    UNITY_BEGIN();
+
+    RUN_TEST(test_chunk_fusion_single);
+    RUN_TEST(test_chunk_fusion_prev_free);
+    RUN_TEST(test_chunk_fusion_prev_not_free);
+    RUN_TEST(test_chunk_fusion_next_free);
+    RUN_TEST(test_chunk_fusion_next_not_free);
+
+    return UNITY_END();
+}
 
 void test_chunk_fusion_single(void) {
     const size_t CHUNK_SIZE_1 = 256;
@@ -12,17 +30,17 @@ void test_chunk_fusion_single(void) {
 
     chunk_t chunk;
 
-    chunk = chunk_create(CHUNK_SIZE_1);
+    chunk = chunk_new(CHUNK_SIZE_1);
     chunk_fusion(chunk);
     TEST_ASSERT_EQUAL(CHUNK_SIZE_1, chunk->size);
     TEST_ASSERT_EQUAL(NULL, chunk->next);
     TEST_ASSERT_EQUAL(NULL, chunk->prev);
-    chunk = chunk_create(CHUNK_SIZE_2);
+    chunk = chunk_new(CHUNK_SIZE_2);
     chunk_fusion(chunk);
     TEST_ASSERT_EQUAL(CHUNK_SIZE_2, chunk->size);
     TEST_ASSERT_EQUAL(NULL, chunk->next);
     TEST_ASSERT_EQUAL(NULL, chunk->prev);
-    chunk = chunk_create(CHUNK_SIZE_3);
+    chunk = chunk_new(CHUNK_SIZE_3);
     chunk_fusion(chunk);
     TEST_ASSERT_EQUAL(CHUNK_SIZE_3, chunk->size);
     TEST_ASSERT_EQUAL(NULL, chunk->next);
@@ -35,8 +53,8 @@ void test_chunk_fusion_prev_free(void) {
 
     chunk_t chunk, prev;
 
-    chunk = chunk_create(CHUNK_SIZE);
-    prev = chunk_create(PREV_SIZE);
+    chunk = chunk_new(CHUNK_SIZE);
+    prev = chunk_new(PREV_SIZE);
     chunk->prev = prev;
     prev->next = chunk;
     prev->free = 1;
@@ -52,8 +70,8 @@ void test_chunk_fusion_prev_not_free(void) {
 
     chunk_t chunk, prev;
 
-    chunk = chunk_create(CHUNK_SIZE);
-    prev = chunk_create(PREV_SIZE);
+    chunk = chunk_new(CHUNK_SIZE);
+    prev = chunk_new(PREV_SIZE);
     chunk->prev = prev;
     prev->next = chunk;
     prev->free = 0;
@@ -72,8 +90,8 @@ void test_chunk_fusion_next_free(void) {
 
     chunk_t chunk, next;
 
-    chunk = chunk_create(CHUNK_SIZE);
-    next = chunk_create(NEXT_SIZE);
+    chunk = chunk_new(CHUNK_SIZE);
+    next = chunk_new(NEXT_SIZE);
     chunk->next = next;
     next->prev = chunk;
     next->free = 1;
@@ -89,8 +107,8 @@ void test_chunk_fusion_next_not_free(void) {
 
     chunk_t chunk, next;
 
-    chunk = chunk_create(CHUNK_SIZE);
-    next = chunk_create(NEXT_SIZE);
+    chunk = chunk_new(CHUNK_SIZE);
+    next = chunk_new(NEXT_SIZE);
     chunk->next = next;
     next->prev = chunk;
     next->free = 0;

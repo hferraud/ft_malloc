@@ -7,7 +7,6 @@
 #define MAGIC_SERIALIZE(x) (x << 8)
 #define MAGIC_DESERIALIZE(x) (x >> 8)
 
-static void     chunk_push_back(chunk_t *head, chunk_t chunk);
 static void     chunk_copy8(chunk_t src, chunk_t dst);
 static void     chunk_copy16(chunk_t src, chunk_t dst);
 static void     chunk_copy32(chunk_t src, chunk_t dst);

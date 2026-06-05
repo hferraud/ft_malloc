@@ -1,9 +1,14 @@
 cmake_minimum_required(VERSION 3.22.1)
+
 project(malloc)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
+set(CMAKE_VERBOSE_MAKEFILE OFF)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
-set(CMAKE_VERBOSE_MAKEFILE ON)
+set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 
 add_library(malloc SHARED)
 
@@ -16,7 +21,9 @@ target_sources(malloc PRIVATE
         ${SRC_DIR}/display.c
 )
 
-target_include_directories(malloc PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(malloc PUBLIC
+        ${INCLUDE_DIR}
+)
 
 target_compile_options(malloc PRIVATE
         -Wall
@@ -24,18 +31,22 @@ target_compile_options(malloc PRIVATE
         -Wextra
 )
 
-add_executable(main
-        ${SRC_DIR}/main.c
-        include/def.h
-)
+option(BUILD_TEST "Build tests" OFF)
 
-target_compile_options(main PRIVATE
-        -Wall
-        -Werror
-        -Wextra
-)
+if(BUILD_TEST)
+    include(CTest)
+    enable_testing()
+    add_subdirectory(test)
+else()
+    add_executable(main
+            ${SRC_DIR}/main.c
+    )
 
-target_link_libraries(main malloc)
+    target_compile_options(main PRIVATE
+            -Wall
+            -Werror
+            -Wextra
+    )
 
-# This is only used for CLion indexing
-include(ceedling/CMakeLists.txt)
+    target_link_libraries(main malloc)
+endif()

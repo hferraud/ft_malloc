@@ -7,7 +7,6 @@
 #define ZONE_METADATA_SIZE  (sizeof(void*) + sizeof(size_t))
 
 typedef struct chunk_s *chunk_t;
-
 typedef struct zone_s *zone_t;
 
 struct zone_s {

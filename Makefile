@@ -1,37 +1,40 @@
 NAME        	:=	malloc
 BUILD_DIR   	:=	.build
-DEBUG_BUILD_DIR	:=	.debug
+BUILD_TEST_DIR  :=	.build-test
+BIN_DIR			:=	bin
+LIB_DIR			:=	lib
 
 .PHONY: all
 all:
-	cmake -S . -B $(BUILD_DIR)
 	cmake --build $(BUILD_DIR)
+
+.PHONY: configure
+configure:
+	cmake -S . -B $(BUILD_DIR)
 
 .PHONY: clean
 clean:
-	$(MAKE) -C $(BUILD_DIR) clean
+	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_TEST_DIR)
 
 .PHONY: fclean
 fclean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BIN_DIR)
+	rm -rf $(LIB_DIR)
 
 .PHONY: re
 re: fclean
+	$(MAKE) configure
 	$(MAKE) all
 
-.PHONY: debug
-debug:
-	cmake -S . -B $(DEBUG_BUILD_DIR) -DCMAKE_BUILD_TYPE=Debug
-	cmake --build $(DEBUG_BUILD_DIR)
+.PHONY: configure-test
+configure-test:
+	cmake -S . -B $(BUILD_TEST_DIR) -DBUILD_TEST=ON
 
-.PHONY: clean_debug
-clean_debug:
-	$(MAKE) -C $(DEBUG_BUILD_DIR) clean
+.PHONY: build-test
+build-test:
+	cmake --build $(BUILD_TEST_DIR)
 
-.PHONY: fclean_debug
-fclean_debug:
-	rm -rf $(DEBUG_BUILD_DIR)
-
-.PHONY: re_debug
-re_debug: fclean_debug
-	$(MAKE) debug
+.PHONY: test
+test: build-test
+	ctest --test-dir $(BUILD_TEST_DIR)
