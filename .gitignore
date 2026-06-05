@@ -1,6 +1,8 @@
-.build/
-.debug/
 .idea/
 cmake-build-debug/
-ceedling/build/
-main
+cmake-build-test/
+
+.build/
+.build-test/
+bin/
+lib/
