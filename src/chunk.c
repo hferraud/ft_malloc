@@ -3,6 +3,7 @@
 #include "zone.h"
 #include "def.h"
 #include "utils.h"
+#include "../cmake-build-test/_deps/unity-src/src/unity.h"
 
 #define MAGIC_SERIALIZE(x) (x << 8)
 #define MAGIC_DESERIALIZE(x) (x >> 8)
@@ -40,9 +41,7 @@ chunk_t chunk_get(size_t size) {
             }
             chunk = zone_get_chunk(zone);
         }
-        if (chunk->size >= size + CHUNK_METADATA_SIZE + ALIGN_SIZE) {
-            chunk_split(chunk, size);
-        }
+        chunk_split(chunk, size);
         chunk->free = 0;
     } else {
         chunk = chunk_new(size);
@@ -143,11 +142,9 @@ chunk_t chunk_split(chunk_t chunk, size_t size) {
         return NULL;
     }
     new_chunk = (chunk_t)(chunk->data + size);
-    new_chunk->size = chunk->size - size - CHUNK_METADATA_SIZE;
+    chunk_init(new_chunk, chunk->size - size - CHUNK_METADATA_SIZE);
     new_chunk->next = chunk->next;
     new_chunk->prev = chunk;
-    new_chunk->magic = 0;
-    new_chunk->magic |= MAGIC_SERIALIZE((uintptr_t)new_chunk->data);
     new_chunk->free = 1;
     if (new_chunk->next) {
         new_chunk->next->prev = new_chunk;

@@ -32,6 +32,8 @@ void *ft_realloc(void *ptr, size_t size) {
     if (zone && chunk->next && chunk->next->free
         && (chunk->size + CHUNK_METADATA_SIZE + chunk->next->size)) {
         //There is enough space in the next chunk
+        //We decide that it's ok to create a chunk of bigger size than usual
+        //since it saves an allocation
         chunk_fusion_next(chunk);
         chunk_split(chunk, size);
     } else {

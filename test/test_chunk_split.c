@@ -4,11 +4,13 @@
 
 #include "malloc.h"
 #include "chunk.h"
+#include "def.h"
 
 static void chunk_split_test(chunk_t chunk, size_t new_size);
 static void test_chunk_split_single(void);
 static void test_chunk_split_many(void);
 static void test_chunk_split_filled(void);
+static void test_chunk_split_min_size(void);
 
 void setUp(void) {}
 void tearDown(void) {}
@@ -18,7 +20,8 @@ int main(void) {
 
     RUN_TEST(test_chunk_split_single);
     RUN_TEST(test_chunk_split_many);
-    RUN_TEST(test_chunk_split_single);
+    RUN_TEST(test_chunk_split_filled);
+    RUN_TEST(test_chunk_split_min_size);
 
     return UNITY_END();
 }
@@ -62,6 +65,17 @@ static void test_chunk_split_filled(void) {
     chunk_split_test(chunk, NEW_SIZE);
 }
 
+static void test_chunk_split_min_size(void) {
+    const size_t OLD_SIZE = TINY_CHUNK_SIZE;
+    const size_t NEW_SIZE = TINY_CHUNK_SIZE - CHUNK_METADATA_SIZE - ALIGN_SIZE;
+
+    chunk_t chunk;
+    chunk = chunk_new(OLD_SIZE);
+    chunk_init(chunk, OLD_SIZE);
+
+    chunk_split_test(chunk, NEW_SIZE);
+}
+
 static void chunk_split_test(chunk_t chunk, size_t new_size) {
     chunk_t new_chunk;
     chunk_t prev = chunk->prev;
@@ -80,5 +94,8 @@ static void chunk_split_test(chunk_t chunk, size_t new_size) {
     TEST_ASSERT_EQUAL(new_chunk->free, 1);
     if (next) {
         TEST_ASSERT_EQUAL(new_chunk, next->prev);
+    }
+    if (prev) {
+        TEST_ASSERT_EQUAL(chunk, prev->next);
     }
 }

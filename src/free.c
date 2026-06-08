@@ -1,5 +1,7 @@
 #include "free.h"
 
+#include <sys/mman.h>
+
 #include "chunk.h"
 
 //TODO: We need to unmap the unallocated zones
@@ -26,7 +28,7 @@ void ft_free(void *ptr) {
     }
     if (zone == NULL) {
         //no zone were found so the chunk is a large one, we need to use munmap
-        //TODO move this in a chunk function or something maybe one that takes a fct pointer
+        //TODO move this in a chunk function or something maybe one that takes a fct pointer to free
         if (chunk == large_head) {
             large_head = chunk->next;
         }
@@ -37,11 +39,11 @@ void ft_free(void *ptr) {
             chunk->next->prev = chunk->prev;
         }
         chunk->free = 1;
-        // if (munmap(chunk, chunk->size + CHUNK_METADATA_SIZE) == -1) {
-        //     //TODO: better error printing
-        //
-        //     // dprintf(STDERR_FILENO, "munmap(): failed\n");
-        // }
+        if (munmap(chunk, chunk->size + CHUNK_METADATA_SIZE) == -1) {
+            //TODO: better error printing
+
+            // dprintf(STDERR_FILENO, "munmap(): failed\n");
+        }
         return;
     }
     chunk->free = 1;
