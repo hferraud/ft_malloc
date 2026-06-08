@@ -149,6 +149,9 @@ chunk_t chunk_split(chunk_t chunk, size_t size) {
     new_chunk->magic = 0;
     new_chunk->magic |= MAGIC_SERIALIZE((uintptr_t)new_chunk->data);
     new_chunk->free = 1;
+    if (new_chunk->next) {
+        new_chunk->next->prev = new_chunk;
+    }
     chunk->size = size;
     chunk->next = new_chunk;
     return new_chunk;

@@ -78,4 +78,7 @@ static void chunk_split_test(chunk_t chunk, size_t new_size) {
     TEST_ASSERT_EQUAL(new_chunk->next, next);
     TEST_ASSERT_EQUAL((new_chunk->magic >> 8), new_chunk->data);
     TEST_ASSERT_EQUAL(new_chunk->free, 1);
+    if (next) {
+        TEST_ASSERT_EQUAL(new_chunk, next->prev);
+    }
 }
