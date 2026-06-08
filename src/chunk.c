@@ -1,8 +1,8 @@
 #include "chunk.h"
 
-#include <sys/mman.h>
 #include "zone.h"
 #include "def.h"
+#include "utils.h"
 
 #define MAGIC_SERIALIZE(x) (x << 8)
 #define MAGIC_DESERIALIZE(x) (x >> 8)
@@ -57,6 +57,7 @@ chunk_t chunk_get(size_t size) {
 void chunk_init(chunk_t chunk, size_t size) {
     chunk->size = size;
     chunk->next = NULL;
+    chunk->prev = NULL;
     chunk->magic = 0;
     chunk->magic |= MAGIC_SERIALIZE((uintptr_t)chunk->data);
     chunk->free = 0;
@@ -65,20 +66,7 @@ void chunk_init(chunk_t chunk, size_t size) {
 chunk_t chunk_new(size_t size) {
     chunk_t new_chunk;
 
-    new_chunk = mmap(
-        NULL,
-        size + CHUNK_METADATA_SIZE,
-        PROT_READ | PROT_WRITE,
-        MAP_PRIVATE | MAP_ANONYMOUS,
-        -1,
-        0);
-    //The mmap function may allocate a bit more space than needed due to page
-    //boundaries but since the allocation needs to be contiguous and large chunks
-    //are bigger than a page, we can't really reuse this unused space
-    if (new_chunk == MAP_FAILED) {
-        return NULL;
-    }
-    chunk_init(new_chunk, size);
+    new_chunk = mmap_wrapper(size + CHUNK_METADATA_SIZE);
     return new_chunk;
 }
 

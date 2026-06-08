@@ -6,7 +6,9 @@
 #include "chunk.h"
 
 static void chunk_split_test(chunk_t chunk, size_t new_size);
-void test_chunk_split_single(void);
+static void test_chunk_split_single(void);
+static void test_chunk_split_many(void);
+static void test_chunk_split_filled(void);
 
 void setUp(void) {}
 void tearDown(void) {}
@@ -15,22 +17,24 @@ int main(void) {
     UNITY_BEGIN();
 
     RUN_TEST(test_chunk_split_single);
+    RUN_TEST(test_chunk_split_many);
+    RUN_TEST(test_chunk_split_single);
 
     return UNITY_END();
 }
 
-void test_chunk_split_single(void) {
+static void test_chunk_split_single(void) {
     const size_t OLD_SIZE = 1024;
     const size_t NEW_SIZE = 512;
 
     chunk_t chunk;
-    chunk_t head = NULL;
 
     chunk = chunk_new(OLD_SIZE);
+    chunk_init(chunk, OLD_SIZE);
     chunk_split_test(chunk, NEW_SIZE);
 }
 
-void test_chunk_split_many(void) {
+static void test_chunk_split_many(void) {
     const size_t OLD_SIZE = 2048;
     const size_t NEW_SIZE_1 = 1024;
     const size_t NEW_SIZE_2 = 512;
@@ -38,6 +42,7 @@ void test_chunk_split_many(void) {
     chunk_t chunk, new_chunk_1;
 
     chunk = chunk_new(OLD_SIZE);
+    chunk_init(chunk, OLD_SIZE);
     chunk_split_test(chunk, NEW_SIZE_1);
     new_chunk_1 = chunk->next;
     chunk_split_test(chunk, NEW_SIZE_2);
@@ -45,13 +50,14 @@ void test_chunk_split_many(void) {
 }
 
 
-void test_chunk_split_filled(void) {
+static void test_chunk_split_filled(void) {
     const size_t OLD_SIZE = 1024;
     const size_t NEW_SIZE = 512;
 
     chunk_t chunk;
 
     chunk = chunk_new(OLD_SIZE);
+    chunk_init(chunk, OLD_SIZE);
     memset(chunk->data, 0xff, chunk->size);
     chunk_split_test(chunk, NEW_SIZE);
 }

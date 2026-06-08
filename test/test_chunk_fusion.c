@@ -31,16 +31,21 @@ void test_chunk_fusion_single(void) {
     chunk_t chunk;
 
     chunk = chunk_new(CHUNK_SIZE_1);
+    chunk_init(chunk, CHUNK_SIZE_1);
     chunk_fusion(chunk);
     TEST_ASSERT_EQUAL(CHUNK_SIZE_1, chunk->size);
     TEST_ASSERT_EQUAL(NULL, chunk->next);
     TEST_ASSERT_EQUAL(NULL, chunk->prev);
+
     chunk = chunk_new(CHUNK_SIZE_2);
+    chunk_init(chunk, CHUNK_SIZE_2);
     chunk_fusion(chunk);
     TEST_ASSERT_EQUAL(CHUNK_SIZE_2, chunk->size);
     TEST_ASSERT_EQUAL(NULL, chunk->next);
     TEST_ASSERT_EQUAL(NULL, chunk->prev);
+
     chunk = chunk_new(CHUNK_SIZE_3);
+    chunk_init(chunk, CHUNK_SIZE_3);
     chunk_fusion(chunk);
     TEST_ASSERT_EQUAL(CHUNK_SIZE_3, chunk->size);
     TEST_ASSERT_EQUAL(NULL, chunk->next);
@@ -54,7 +59,9 @@ void test_chunk_fusion_prev_free(void) {
     chunk_t chunk, prev;
 
     chunk = chunk_new(CHUNK_SIZE);
+    chunk_init(chunk, CHUNK_SIZE);
     prev = chunk_new(PREV_SIZE);
+    chunk_init(prev, PREV_SIZE);
     chunk->prev = prev;
     prev->next = chunk;
     prev->free = 1;
@@ -71,7 +78,9 @@ void test_chunk_fusion_prev_not_free(void) {
     chunk_t chunk, prev;
 
     chunk = chunk_new(CHUNK_SIZE);
+    chunk_init(chunk, CHUNK_SIZE);
     prev = chunk_new(PREV_SIZE);
+    chunk_init(prev, PREV_SIZE);
     chunk->prev = prev;
     prev->next = chunk;
     prev->free = 0;
@@ -91,7 +100,9 @@ void test_chunk_fusion_next_free(void) {
     chunk_t chunk, next;
 
     chunk = chunk_new(CHUNK_SIZE);
+    chunk_init(chunk, CHUNK_SIZE);
     next = chunk_new(NEXT_SIZE);
+    chunk_init(next, NEXT_SIZE);
     chunk->next = next;
     next->prev = chunk;
     next->free = 1;
@@ -108,7 +119,9 @@ void test_chunk_fusion_next_not_free(void) {
     chunk_t chunk, next;
 
     chunk = chunk_new(CHUNK_SIZE);
+    chunk_init(chunk, CHUNK_SIZE);
     next = chunk_new(NEXT_SIZE);
+    chunk_init(next, NEXT_SIZE);
     chunk->next = next;
     next->prev = chunk;
     next->free = 0;

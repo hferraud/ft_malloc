@@ -38,3 +38,7 @@ build-test:
 .PHONY: test
 test: build-test
 	ctest --test-dir $(BUILD_TEST_DIR)
+
+.PHONY: test_verbose
+test_verbose: build-test
+	ctest --test-dir $(BUILD_TEST_DIR) --verbose

@@ -19,6 +19,7 @@ target_sources(malloc PRIVATE
         ${SRC_DIR}/chunk.c
         ${SRC_DIR}/zone.c
         ${SRC_DIR}/display.c
+        ${SRC_DIR}/utils.c
 )
 
 target_include_directories(malloc PUBLIC
@@ -40,6 +41,8 @@ if(BUILD_TEST)
 else()
     add_executable(main
             ${SRC_DIR}/main.c
+            include/utils.h
+            src/utils.c
     )
 
     target_compile_options(main PRIVATE
