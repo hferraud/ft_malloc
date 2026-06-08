@@ -49,6 +49,7 @@ chunk_t chunk_get(size_t size) {
         if (chunk == NULL) {
             return NULL;
         }
+        chunk_init(chunk, size);
         chunk_push_back(&large_head, chunk);
     }
     return chunk;

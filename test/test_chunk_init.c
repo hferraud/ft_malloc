@@ -1,6 +1,6 @@
-#include <string.h>
-
 #include "unity.h"
+
+#include <string.h>
 
 #include "chunk.h"
 

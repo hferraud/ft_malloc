@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include "chunk.h"
+#include "utils.h"
 
 zone_t tiny_head = NULL;
 zone_t small_head = NULL;
@@ -20,21 +21,15 @@ zone_t zone_new(zone_t last, size_t size) {
         return NULL;
     }
     zone_size += page_size - zone_size % page_size;
-    new_zone = mmap(
-        NULL,
-        zone_size,
-        PROT_READ | PROT_WRITE,
-        MAP_PRIVATE | MAP_ANONYMOUS,
-        -1,
-        0);
-    if (new_zone == MAP_FAILED) {
+    new_zone = mmap_wrapper(zone_size);
+    if (new_zone == NULL) {
         return NULL;
     }
     if (last != NULL) {
         last->next = new_zone;
     }
     new_zone->next = NULL;
-    new_zone->size = zone_size;
+    new_zone->size = zone_size - ZONE_METADATA_SIZE;
     //Now we add free chunk of the size of the remaining space
     chunk_t new_chunk = zone_get_chunk(new_zone);
     chunk_init(new_chunk, zone_size - ZONE_METADATA_SIZE - CHUNK_METADATA_SIZE);

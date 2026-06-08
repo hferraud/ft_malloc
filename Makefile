@@ -27,18 +27,18 @@ re: fclean
 	$(MAKE) configure
 	$(MAKE) all
 
-.PHONY: configure-test
-configure-test:
+.PHONY: configure_test
+configure_test:
 	cmake -S . -B $(BUILD_TEST_DIR) -DBUILD_TEST=ON
 
-.PHONY: build-test
-build-test:
+.PHONY: build_test
+build_test:
 	cmake --build $(BUILD_TEST_DIR)
 
 .PHONY: test
-test: build-test
+test: build_test
 	ctest --test-dir $(BUILD_TEST_DIR)
 
 .PHONY: test_verbose
-test_verbose: build-test
+test_verbose: build_test
 	ctest --test-dir $(BUILD_TEST_DIR) --verbose
