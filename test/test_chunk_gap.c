@@ -5,6 +5,7 @@
 #include "free.h"
 #include "malloc.h"
 #include "chunk.h"
+#include "def.h"
 
 #define LARGE_CHUNK_SIZE (SMALL_CHUNK_SIZE * 8)
 #define TINY_CHUNK_SIZE_1_1 TINY_CHUNK_SIZE
@@ -14,11 +15,14 @@
 
 void test_chunk_gap_tiny_fit(void);
 void test_chunk_gap_tiny_bigger(void);
-void test_chunk_gap_tiny_smaller(void);
+void test_chunk_gap_tiny_smaller_new_gap(void);
+void test_chunk_gap_tiny_smaller_no_gap(void);
 void test_chunk_gap_tiny_many(void);
+
 void test_chunk_gap_small_fit(void);
 void test_chunk_gap_small_bigger(void);
-void test_chunk_gap_small_smaller(void);
+void test_chunk_gap_small_smaller_new_gap(void);
+void test_chunk_gap_small_smaller_no_gap(void);
 void test_chunk_gap_small_many(void);
 
 chunk_t tiny_lower_gap_chunk, tiny_upper_gap_chunk, tiny_gap_chunk;
@@ -48,12 +52,14 @@ int main(void) {
 
     RUN_TEST(test_chunk_gap_tiny_fit);
     RUN_TEST(test_chunk_gap_tiny_bigger);
-    RUN_TEST(test_chunk_gap_tiny_smaller);
+    RUN_TEST(test_chunk_gap_tiny_smaller_new_gap);
+    RUN_TEST(test_chunk_gap_tiny_smaller_no_gap);
     RUN_TEST(test_chunk_gap_tiny_many);
 
     RUN_TEST(test_chunk_gap_small_fit);
     RUN_TEST(test_chunk_gap_small_bigger);
-    // RUN_TEST(test_chunk_gap_small_smaller);
+    RUN_TEST(test_chunk_gap_small_smaller_new_gap);
+    RUN_TEST(test_chunk_gap_small_smaller_no_gap);
     RUN_TEST(test_chunk_gap_small_many);
 
     return UNITY_END();
@@ -107,30 +113,65 @@ void test_chunk_gap_small_bigger(void) {
     ft_free(addr);
 }
 
-void test_chunk_gap_tiny_smaller(void) {
+void test_chunk_gap_tiny_smaller_new_gap(void) {
     void *addr;
     chunk_t chunk;
 
-    addr = ft_malloc(TINY_CHUNK_SIZE_1_2 / 2);
+    addr = ft_malloc(ALIGN_SIZE);
     chunk = addr - CHUNK_METADATA_SIZE;
     TEST_ASSERT_EQUAL(chunk, tiny_lower_gap_chunk->next);
-    TEST_ASSERT_EQUAL(chunk->next, tiny_upper_gap_chunk->prev);
     TEST_ASSERT_TRUE(chunk->next->free);
+    TEST_ASSERT_EQUAL(chunk->next, tiny_upper_gap_chunk->prev);
+    TEST_ASSERT_EQUAL(chunk->next->next, tiny_upper_gap_chunk);
     TEST_ASSERT_FALSE(chunk->free);
     ft_free(addr);
 }
 
-// void test_chunk_gap_small_smaller(void) {
-//     void *addr;
-//     chunk_t chunk;
-//
-//     addr = ft_malloc(SMALL_CHUNK_SIZE_1_2 / 2);
-//     chunk = addr - CHUNK_METADATA_SIZE;
-//     // TEST_ASSERT_EQUAL(chunk, small_upper_gap_chunk->next);
-//     // TEST_ASSERT_TRUE(small_gap_chunk->free); //the gap chunk should still be free
-//     // TEST_ASSERT_FALSE(chunk->free);
-//     ft_free(addr);
-// }
+void test_chunk_gap_small_smaller_new_gap(void) {
+    void *addr;
+    chunk_t chunk;
+
+    addr = ft_malloc(TINY_CHUNK_SIZE + ALIGN_SIZE);
+    chunk = addr - CHUNK_METADATA_SIZE;
+    TEST_ASSERT_EQUAL(chunk, small_lower_gap_chunk->next);
+    TEST_ASSERT_TRUE(chunk->next->free);
+    TEST_ASSERT_EQUAL(chunk->next, small_upper_gap_chunk->prev);
+    TEST_ASSERT_EQUAL(chunk->next->next, small_upper_gap_chunk);
+    TEST_ASSERT_FALSE(chunk->free);
+    ft_free(addr);
+}
+
+void test_chunk_gap_tiny_smaller_no_gap(void) {
+    void *addr;
+    chunk_t chunk;
+
+    size_t old_size = tiny_gap_chunk->size;
+    addr = ft_malloc(tiny_gap_chunk->size - CHUNK_METADATA_SIZE);
+    chunk = addr - CHUNK_METADATA_SIZE;
+    TEST_ASSERT_FALSE(chunk->free);
+    TEST_ASSERT_EQUAL(chunk, tiny_lower_gap_chunk->next);
+    TEST_ASSERT_EQUAL(chunk, tiny_upper_gap_chunk->prev);
+    TEST_ASSERT_EQUAL(tiny_lower_gap_chunk, chunk->prev);
+    TEST_ASSERT_EQUAL(tiny_upper_gap_chunk, chunk->next);
+    TEST_ASSERT_EQUAL(chunk->size, old_size);
+    ft_free(addr);
+}
+
+void test_chunk_gap_small_smaller_no_gap(void) {
+    void *addr;
+    chunk_t chunk;
+
+    size_t old_size = small_gap_chunk->size;
+    addr = ft_malloc(small_gap_chunk->size - CHUNK_METADATA_SIZE);
+    chunk = addr - CHUNK_METADATA_SIZE;
+    TEST_ASSERT_FALSE(chunk->free);
+    TEST_ASSERT_EQUAL(chunk, small_lower_gap_chunk->next);
+    TEST_ASSERT_EQUAL(chunk, small_upper_gap_chunk->prev);
+    TEST_ASSERT_EQUAL(small_lower_gap_chunk, chunk->prev);
+    TEST_ASSERT_EQUAL(small_upper_gap_chunk, chunk->next);
+    TEST_ASSERT_EQUAL(chunk->size, old_size);
+    ft_free(addr);
+}
 
 void test_chunk_gap_tiny_many(void) {
     void *addr;
