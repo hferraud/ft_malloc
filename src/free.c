@@ -7,12 +7,11 @@
 #include "chunk.h"
 #include "zone.h"
 
-#define ERROR_INVALID_POINTER_MSG "free(): invalid pointer\n"
-#define ERROR_INVALID_POINTER_LEN 24
+#define ERROR_INVALID_PTR_MSG "free(): invalid pointer\n"
+#define ERROR_INVALID_PTR_LEN 24
 #define ERROR_DOUBLE_FREE_MSG "free(): double free detected\n"
 #define ERROR_DOUBLE_FREE_LEN 29
 
-//TODO: We need to unmap the unallocated zones
 void ft_free(void *ptr) {
     chunk_t chunk;
     zone_t zone;
@@ -23,7 +22,7 @@ void ft_free(void *ptr) {
     }
     chunk = chunk_validate(ptr, &zone, &zone_head);
     if (chunk == NULL) {
-        write(STDERR_FILENO, ERROR_INVALID_POINTER_MSG, ERROR_INVALID_POINTER_LEN);
+        write(STDERR_FILENO, ERROR_INVALID_PTR_MSG, ERROR_INVALID_PTR_LEN);
         return;
     }
     if (chunk->free == 1) {

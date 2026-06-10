@@ -1,10 +1,15 @@
 #include "realloc.h"
 
+#include <unistd.h>
+
 #include "malloc.h"
 #include "free.h"
 #include "chunk.h"
 #include "zone.h"
 #include "def.h"
+
+#define ERROR_INVALID_PTR_MSG "realloc(): invalid pointer\n"
+#define ERROR_INVALID_PTR_LEN 27
 
 void *ft_realloc(void *ptr, size_t size) {
     chunk_t chunk;
@@ -17,9 +22,7 @@ void *ft_realloc(void *ptr, size_t size) {
     }
     chunk = chunk_validate(ptr, &zone, NULL);
     if (chunk == NULL) {
-        //TODO: better error printing
-
-        // dprintf(STDERR_FILENO, "ft_realloc(): invalid pointer\n");
+        write(STDERR_FILENO, ERROR_INVALID_PTR_MSG, ERROR_INVALID_PTR_LEN);
         return NULL;
     }
 
