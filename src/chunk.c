@@ -101,20 +101,17 @@ chunk_t chunk_search(chunk_t c_head, size_t size) {
     return c_head;
 }
 
-chunk_t  chunk_validate(void *addr, zone_t *zone, zone_t *zone_head) {
+chunk_t  chunk_validate(void *addr, zone_t *zone, zone_t **zone_head) {
     chunk_t chunk = (chunk_t)(addr - CHUNK_METADATA_SIZE);
     uintptr_t magic;
     uintptr_t data;
     //we check if the address is in a tiny zone
-    zone_t current_zone_head = tiny_head;
-    *zone = zone_validate((uintptr_t)addr, current_zone_head);
+    *zone_head = &tiny_head;
+    *zone = zone_validate((uintptr_t)addr, tiny_head);
     if (*zone == NULL) {
         //if not we check the small zone
-        current_zone_head = small_head;
-        *zone = zone_validate((uintptr_t)addr, current_zone_head);
-    }
-    if (zone_head != NULL) {
-        *zone_head = current_zone_head;
+        *zone_head = &small_head;
+        *zone = zone_validate((uintptr_t)addr, small_head);
     }
 
     // we deserialize chunk->magic to remove chunk->free

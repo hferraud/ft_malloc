@@ -35,6 +35,6 @@ void        chunk_fusion(chunk_t chunk);
 void        chunk_fusion_next(chunk_t chunk);
 void        chunk_fusion_prev(chunk_t chunk);
 void        chunk_copy(chunk_t src, chunk_t dst);
-chunk_t     chunk_validate(void *addr, zone_t *zone, zone_t *zone_head);
+chunk_t     chunk_validate(void *addr, zone_t *zone, zone_t **zone_head);
 
 #endif //CHUNK_H

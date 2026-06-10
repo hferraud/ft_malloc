@@ -8,14 +8,20 @@
 zone_t tiny_head = NULL;
 zone_t small_head = NULL;
 
-zone_t zone_new(zone_t last, size_t size) {
+/**
+ * @brief Create a new zone
+ * @param last The last zone search, new zone will be placed next
+ * @param chunk_size The chunk size that will be placed in the zone
+ * @return The newly created zone
+ */
+zone_t zone_new(zone_t last, size_t chunk_size) {
     zone_t new_zone;
     size_t zone_size;
     const size_t page_size = sysconf(_SC_PAGESIZE);
 
-    if (size <= TINY_CHUNK_SIZE) {
+    if (chunk_size <= TINY_CHUNK_SIZE) {
         zone_size = TINY_CHUNK_SIZE * CHUNK_PER_ZONE + ZONE_METADATA_SIZE;
-    } else if (size <= SMALL_CHUNK_SIZE) {
+    } else if (chunk_size <= SMALL_CHUNK_SIZE) {
         zone_size = SMALL_CHUNK_SIZE * CHUNK_PER_ZONE + ZONE_METADATA_SIZE;
     } else {
         return NULL;
@@ -37,14 +43,35 @@ zone_t zone_new(zone_t last, size_t size) {
     return new_zone;
 }
 
-zone_t  zone_validate(uintptr_t addr, zone_t head) {
-    while (head) {
-        if (addr >= (uintptr_t)head->data && addr < (uintptr_t)head->data + head->size) {
-            return head;
+/**
+ * @brief Unmap the second free zone found, ensuring that at least one free zone
+ * remain
+ * @param zone_head The zone head to update if it is unmapped
+ */
+void zone_unmap(zone_t* zone_head) {
+    zone_t it = *zone_head;
+    zone_t prev = NULL;
+    uint8_t zone_found = 0;
+
+    while (it) {
+        chunk_t chunk = (chunk_t)it->data;
+        if (it->size == chunk->size + CHUNK_METADATA_SIZE && chunk->free) {
+            //The zone is free
+            if (zone_found) {
+                if (prev == NULL) {
+                    *zone_head = it->next;
+                }
+                else {
+                    prev->next = it->next;
+                }
+                munmap(it, it->size);
+                return;
+            }
+            zone_found = 1;
         }
-        head = head->next;
+        prev = it;
+        it = it->next;
     }
-    return NULL;
 }
 
 /**
@@ -62,6 +89,16 @@ chunk_t zone_search(zone_t z_head, zone_t *z_last, size_t size) {
         }
         *z_last = z_head;
         z_head = z_head->next;
+    }
+    return NULL;
+}
+
+zone_t  zone_validate(uintptr_t addr, zone_t head) {
+    while (head) {
+        if (addr >= (uintptr_t)head->data && addr < (uintptr_t)head->data + head->size) {
+            return head;
+        }
+        head = head->next;
     }
     return NULL;
 }

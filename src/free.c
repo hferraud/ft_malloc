@@ -5,6 +5,7 @@
 #include <sys/mman.h>
 
 #include "chunk.h"
+#include "zone.h"
 
 #define ERROR_INVALID_POINTER_MSG "free(): invalid pointer\n"
 #define ERROR_INVALID_POINTER_LEN 24
@@ -15,7 +16,7 @@
 void ft_free(void *ptr) {
     chunk_t chunk;
     zone_t zone;
-    zone_t zone_head;
+    zone_t *zone_head;
 
     if (ptr == NULL) {
         return;
@@ -47,7 +48,6 @@ void ft_free(void *ptr) {
     }
     chunk->free = 1;
     chunk_fusion(chunk);
-    //TODO: Here we need to unmap the zones if possible by
-    //iterating onto them and finding at least two free zones
+    zone_unmap(zone_head);
 }
 
