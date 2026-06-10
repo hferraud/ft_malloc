@@ -35,6 +35,9 @@ target_compile_options(malloc PRIVATE
 option(BUILD_TEST "Build tests" OFF)
 
 if(BUILD_TEST)
+    target_compile_options(malloc PUBLIC
+            -g3
+    )
     include(CTest)
     enable_testing()
     add_subdirectory(test)

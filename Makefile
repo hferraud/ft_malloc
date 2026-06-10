@@ -18,7 +18,7 @@ clean:
 	rm -rf $(BUILD_TEST_DIR)
 
 .PHONY: fclean
-fclean:
+fclean: clean
 	rm -rf $(BIN_DIR)
 	rm -rf $(LIB_DIR)
 
