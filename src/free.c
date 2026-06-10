@@ -1,8 +1,15 @@
 #include "free.h"
 
+#include <stdio.h>
+#include <unistd.h>
 #include <sys/mman.h>
 
 #include "chunk.h"
+
+#define ERROR_INVALID_POINTER_MSG "free(): invalid pointer\n"
+#define ERROR_INVALID_POINTER_LEN 24
+#define ERROR_DOUBLE_FREE_MSG "free(): double free detected\n"
+#define ERROR_DOUBLE_FREE_LEN 29
 
 //TODO: We need to unmap the unallocated zones
 void ft_free(void *ptr) {
@@ -15,20 +22,14 @@ void ft_free(void *ptr) {
     }
     chunk = chunk_validate(ptr, &zone, &zone_head);
     if (chunk == NULL) {
-        //TODO: better error printing
-
-        // dprintf(STDERR_FILENO, "free(): invalid pointer\n");
+        write(STDERR_FILENO, ERROR_INVALID_POINTER_MSG, ERROR_INVALID_POINTER_LEN);
         return;
     }
     if (chunk->free == 1) {
-        //TODO: better error printing
-
-        // dprintf(STDERR_FILENO, "free(): double free detected\n");
+        write(STDERR_FILENO, ERROR_DOUBLE_FREE_MSG, ERROR_DOUBLE_FREE_LEN);
         return;
     }
     if (zone == NULL) {
-        //no zone were found so the chunk is a large one, we need to use munmap
-        //TODO move this in a chunk function or something maybe one that takes a fct pointer to free
         if (chunk == large_head) {
             large_head = chunk->next;
         }
@@ -40,9 +41,7 @@ void ft_free(void *ptr) {
         }
         chunk->free = 1;
         if (munmap(chunk, chunk->size + CHUNK_METADATA_SIZE) == -1) {
-            //TODO: better error printing
-
-            // dprintf(STDERR_FILENO, "munmap(): failed\n");
+            perror("free: munmap");
         }
         return;
     }
