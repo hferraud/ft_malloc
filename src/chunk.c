@@ -106,11 +106,15 @@ chunk_t  chunk_validate(void *addr, zone_t *zone, zone_t **zone_head) {
     uintptr_t magic;
     uintptr_t data;
     //we check if the address is in a tiny zone
-    *zone_head = &tiny_head;
+    if (zone_head) {
+        *zone_head = &tiny_head;
+    }
     *zone = zone_validate((uintptr_t)addr, tiny_head);
     if (*zone == NULL) {
         //if not we check the small zone
-        *zone_head = &small_head;
+        if (zone_head) {
+            *zone_head = &small_head;
+        }
         *zone = zone_validate((uintptr_t)addr, small_head);
     }
 
@@ -196,7 +200,7 @@ static void chunk_copy8(chunk_t src, chunk_t dst) {
     uint8_t *src_data = (uint8_t*)src->data;
     uint8_t *dst_data = (uint8_t*)dst->data;
 
-    for (size_t i = 0; i < src->size; i++) {
+    for (size_t i = 0; i < src->size && i < dst->size; i++) {
         dst_data[i] = src_data[i];
     }
 }
@@ -205,7 +209,7 @@ static void chunk_copy16(chunk_t src, chunk_t dst) {
     uint16_t *src_data = (uint16_t*)src->data;
     uint16_t *dst_data = (uint16_t*)dst->data;
 
-    for (size_t i = 0; i * 2 < src->size; i++) {
+    for (size_t i = 0; i * 2 < src->size && i * 2 < dst->size; i++) {
         dst_data[i] = src_data[i];
     }
 }
@@ -214,7 +218,7 @@ static void chunk_copy32(chunk_t src, chunk_t dst) {
     uint32_t *src_data = (uint32_t*)src->data;
     uint32_t *dst_data = (uint32_t*)dst->data;
 
-    for (size_t i = 0; i * 4 < src->size; i++) {
+    for (size_t i = 0; i * 4 < src->size && i * 4 < dst->size; i++) {
         dst_data[i] = src_data[i];
     }
 }
