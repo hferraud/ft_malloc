@@ -36,13 +36,13 @@ void test_free_basic_tiny(void) {
     chunk = addr - CHUNK_METADATA_SIZE;
     TEST_ASSERT_FALSE(chunk->free);
     free_chunk_size = chunk->next->size;
-    ft_free(addr);
+    free(addr);
     TEST_ASSERT_TRUE(chunk->free);
     TEST_ASSERT_EQUAL(free_chunk_size + CHUNK_SIZE + CHUNK_METADATA_SIZE, chunk->size);
     ft_malloc(CHUNK_SIZE);
     TEST_ASSERT_FALSE(chunk->free);
     TEST_ASSERT_EQUAL(free_chunk_size, chunk->next->size);
-    ft_free(addr);
+    free(addr);
     TEST_ASSERT_TRUE(chunk->free);
     TEST_ASSERT_EQUAL(free_chunk_size + CHUNK_SIZE + CHUNK_METADATA_SIZE, chunk->size);
 }
@@ -58,7 +58,7 @@ void test_free_basic_small(void) {
     TEST_ASSERT_FALSE(chunk->free);
     free_chunk_size = chunk->next->size;
 
-    ft_free(addr);
+    free(addr);
     TEST_ASSERT_TRUE(chunk->free);
     TEST_ASSERT_EQUAL(free_chunk_size + CHUNK_SIZE + CHUNK_METADATA_SIZE, chunk->size);
 
@@ -66,7 +66,7 @@ void test_free_basic_small(void) {
     TEST_ASSERT_FALSE(chunk->free);
     TEST_ASSERT_EQUAL(free_chunk_size, chunk->next->size);
 
-    ft_free(addr);
+    free(addr);
     TEST_ASSERT_TRUE(chunk->free);
     TEST_ASSERT_EQUAL(free_chunk_size + CHUNK_SIZE + CHUNK_METADATA_SIZE, chunk->size);
 }
@@ -83,11 +83,11 @@ void test_free_basic_large_next_chunk_freed(void) {
     TEST_ASSERT_NOT_NULL(chunk1->next);
 
     TEST_ASSERT_EQUAL(chunk1, large_head);
-    ft_free(addr2);
+    free(addr2);
     //Here the chunk should be unmapped
     //TODO: check if munmap was called
     TEST_ASSERT_NULL(chunk1->next);
-    ft_free(addr1);
+    free(addr1);
     //Here the chunk should be unmapped
     //TODO: check if munmap was called
     TEST_ASSERT_NULL(large_head);
@@ -105,12 +105,12 @@ void test_free_basic_large_prev_chunk_freed(void) {
     TEST_ASSERT_NOT_NULL(chunk2->prev);
 
     TEST_ASSERT_EQUAL(chunk1, large_head);
-    ft_free(addr1);
+    free(addr1);
     //Here the chunk should be unmapped
     //TODO: check if munmap was called
     TEST_ASSERT_NULL(chunk2->prev);
     TEST_ASSERT_EQUAL(chunk2, large_head);
-    ft_free(addr2);
+    free(addr2);
     //Here the chunk should be unmapped
     //TODO: check if munmap was called
     TEST_ASSERT_NULL(large_head);

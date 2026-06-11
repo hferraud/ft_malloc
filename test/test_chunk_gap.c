@@ -32,19 +32,19 @@ void setUp(void) {
     tiny_lower_gap_chunk = ft_malloc(TINY_CHUNK_SIZE_1_1) - CHUNK_METADATA_SIZE;
     tiny_gap_chunk = ft_malloc(TINY_CHUNK_SIZE_1_2) - CHUNK_METADATA_SIZE;
     tiny_upper_gap_chunk = ft_malloc(TINY_CHUNK_SIZE_1_1) - CHUNK_METADATA_SIZE;
-    ft_free(tiny_gap_chunk->data);
+    free(tiny_gap_chunk->data);
 
     small_lower_gap_chunk = ft_malloc(SMALL_CHUNK_SIZE_1_1) - CHUNK_METADATA_SIZE;
     small_gap_chunk = ft_malloc(SMALL_CHUNK_SIZE_1_2) - CHUNK_METADATA_SIZE;
     small_upper_gap_chunk = ft_malloc(SMALL_CHUNK_SIZE_1_1) - CHUNK_METADATA_SIZE;
-    ft_free(small_gap_chunk->data);
+    free(small_gap_chunk->data);
 }
 void tearDown(void) {
-    ft_free(tiny_lower_gap_chunk->data);
-    ft_free(tiny_upper_gap_chunk->data);
+    free(tiny_lower_gap_chunk->data);
+    free(tiny_upper_gap_chunk->data);
 
-    ft_free(small_lower_gap_chunk->data);
-    ft_free(small_upper_gap_chunk->data);
+    free(small_lower_gap_chunk->data);
+    free(small_upper_gap_chunk->data);
 }
 
 int main(void) {
@@ -74,7 +74,7 @@ void test_chunk_gap_tiny_fit(void) {
     chunk = addr - CHUNK_METADATA_SIZE;
     TEST_ASSERT_FALSE(tiny_gap_chunk->free);
     TEST_ASSERT_EQUAL(chunk, tiny_gap_chunk);
-    ft_free(addr);
+    free(addr);
 }
 
 void test_chunk_gap_small_fit(void) {
@@ -86,7 +86,7 @@ void test_chunk_gap_small_fit(void) {
     chunk = addr - CHUNK_METADATA_SIZE;
     TEST_ASSERT_FALSE(small_gap_chunk->free);
     TEST_ASSERT_EQUAL(chunk, small_gap_chunk);
-    ft_free(addr);
+    free(addr);
 }
 
 void test_chunk_gap_tiny_bigger(void) {
@@ -98,7 +98,7 @@ void test_chunk_gap_tiny_bigger(void) {
     TEST_ASSERT_EQUAL(chunk, tiny_upper_gap_chunk->next);
     TEST_ASSERT_TRUE(tiny_gap_chunk->free); //the gap chunk should still be free
     TEST_ASSERT_FALSE(chunk->free);
-    ft_free(addr);
+    free(addr);
 }
 
 void test_chunk_gap_small_bigger(void) {
@@ -110,7 +110,7 @@ void test_chunk_gap_small_bigger(void) {
     TEST_ASSERT_EQUAL(chunk, small_upper_gap_chunk->next);
     TEST_ASSERT_TRUE(small_gap_chunk->free); //the gap chunk should still be free
     TEST_ASSERT_FALSE(chunk->free);
-    ft_free(addr);
+    free(addr);
 }
 
 void test_chunk_gap_tiny_smaller_new_gap(void) {
@@ -124,7 +124,7 @@ void test_chunk_gap_tiny_smaller_new_gap(void) {
     TEST_ASSERT_EQUAL(chunk->next, tiny_upper_gap_chunk->prev);
     TEST_ASSERT_EQUAL(chunk->next->next, tiny_upper_gap_chunk);
     TEST_ASSERT_FALSE(chunk->free);
-    ft_free(addr);
+    free(addr);
 }
 
 void test_chunk_gap_small_smaller_new_gap(void) {
@@ -138,7 +138,7 @@ void test_chunk_gap_small_smaller_new_gap(void) {
     TEST_ASSERT_EQUAL(chunk->next, small_upper_gap_chunk->prev);
     TEST_ASSERT_EQUAL(chunk->next->next, small_upper_gap_chunk);
     TEST_ASSERT_FALSE(chunk->free);
-    ft_free(addr);
+    free(addr);
 }
 
 void test_chunk_gap_tiny_smaller_no_gap(void) {
@@ -154,7 +154,7 @@ void test_chunk_gap_tiny_smaller_no_gap(void) {
     TEST_ASSERT_EQUAL(tiny_lower_gap_chunk, chunk->prev);
     TEST_ASSERT_EQUAL(tiny_upper_gap_chunk, chunk->next);
     TEST_ASSERT_EQUAL(chunk->size, old_size);
-    ft_free(addr);
+    free(addr);
 }
 
 void test_chunk_gap_small_smaller_no_gap(void) {
@@ -170,7 +170,7 @@ void test_chunk_gap_small_smaller_no_gap(void) {
     TEST_ASSERT_EQUAL(small_lower_gap_chunk, chunk->prev);
     TEST_ASSERT_EQUAL(small_upper_gap_chunk, chunk->next);
     TEST_ASSERT_EQUAL(chunk->size, old_size);
-    ft_free(addr);
+    free(addr);
 }
 
 void test_chunk_gap_tiny_many(void) {
@@ -193,8 +193,8 @@ void test_chunk_gap_tiny_many(void) {
     TEST_ASSERT_EQUAL(split_chunk_2, tiny_upper_gap_chunk->prev);
     TEST_ASSERT_EQUAL(tiny_upper_gap_chunk, split_chunk_2->next);
     TEST_ASSERT_FALSE(split_chunk_2->free);
-    ft_free(split_chunk_1->data);
-    ft_free(split_chunk_2->data);
+    free(split_chunk_1->data);
+    free(split_chunk_2->data);
 }
 
 void test_chunk_gap_small_many(void) {
@@ -217,6 +217,6 @@ void test_chunk_gap_small_many(void) {
     TEST_ASSERT_EQUAL(split_chunk_2, small_upper_gap_chunk->prev);
     TEST_ASSERT_EQUAL(small_upper_gap_chunk, split_chunk_2->next);
     TEST_ASSERT_FALSE(split_chunk_2->free);
-    ft_free(split_chunk_1->data);
-    ft_free(split_chunk_2->data);
+    free(split_chunk_1->data);
+    free(split_chunk_2->data);
 }

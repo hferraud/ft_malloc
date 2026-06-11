@@ -60,17 +60,17 @@ void test_realloc_small_smaller_new_size() {
 }
 
 void test_realloc_large_new_size() {
-    void *addr_1 = ft_realloc(NULL, LARGE_CHUNK_SIZE);
+    void *addr_1 = realloc(NULL, LARGE_CHUNK_SIZE);
     chunk_t chunk_1 = addr_1 - CHUNK_METADATA_SIZE;
 
     realloc_fill_chunk(chunk_1);
-    void *addr_2 = ft_realloc(addr_1, LARGE_CHUNK_SIZE / 2);
+    void *addr_2 = realloc(addr_1, LARGE_CHUNK_SIZE / 2);
     chunk_t chunk_2 = addr_2 - CHUNK_METADATA_SIZE;
     realloc_fill_chunk_test(chunk_2, chunk_2->size);
     TEST_ASSERT_NOT_EQUAL(addr_1, addr_2);
     TEST_ASSERT_EQUAL(LARGE_CHUNK_SIZE / 2, chunk_2->size);
     TEST_ASSERT_EQUAL(chunk_2, large_head);
-    ft_free(addr_2);
+    free(addr_2);
 }
 
 void test_realloc_tiny_bigger_new_size_contiguous_no_gap() {
@@ -102,52 +102,52 @@ void test_realloc_tiny_new_allocation_new_zone() {
     void *addr_1, *addr_2;
     chunk_t chunk_1, chunk_2, new_chunk;
 
-    addr_1 = ft_realloc(NULL, TINY_CHUNK_SIZE);
-    addr_2 = ft_realloc(NULL, TINY_CHUNK_SIZE);
+    addr_1 = realloc(NULL, TINY_CHUNK_SIZE);
+    addr_2 = realloc(NULL, TINY_CHUNK_SIZE);
     chunk_1 = addr_1 - CHUNK_METADATA_SIZE;
     chunk_2 = addr_2 - CHUNK_METADATA_SIZE;
     realloc_fill_chunk(chunk_1);
-    new_chunk = ft_realloc(addr_1, SMALL_CHUNK_SIZE) - CHUNK_METADATA_SIZE;
+    new_chunk = realloc(addr_1, SMALL_CHUNK_SIZE) - CHUNK_METADATA_SIZE;
     realloc_fill_chunk_test(new_chunk, TINY_CHUNK_SIZE);
     TEST_ASSERT_TRUE(chunk_1->free);
     TEST_ASSERT_EQUAL(new_chunk, small_head->data);
     TEST_ASSERT_EQUAL(chunk_2, chunk_1->next);
     TEST_ASSERT_EQUAL(SMALL_CHUNK_SIZE, new_chunk->size);
-    ft_free(addr_2);
-    ft_free(new_chunk->data);
+    free(addr_2);
+    free(new_chunk->data);
 }
 
 void test_realloc_small_new_allocation_new_zone() {
     void *addr_1, *addr_2;
     chunk_t chunk_1, chunk_2, new_chunk;
 
-    addr_1 = ft_realloc(NULL, SMALL_CHUNK_SIZE);
-    addr_2 = ft_realloc(NULL, SMALL_CHUNK_SIZE);
+    addr_1 = realloc(NULL, SMALL_CHUNK_SIZE);
+    addr_2 = realloc(NULL, SMALL_CHUNK_SIZE);
     chunk_1 = addr_1 - CHUNK_METADATA_SIZE;
     chunk_2 = addr_2 - CHUNK_METADATA_SIZE;
     realloc_fill_chunk(chunk_1);
-    new_chunk = ft_realloc(addr_1, LARGE_CHUNK_SIZE) - CHUNK_METADATA_SIZE;
+    new_chunk = realloc(addr_1, LARGE_CHUNK_SIZE) - CHUNK_METADATA_SIZE;
     realloc_fill_chunk_test(new_chunk, SMALL_CHUNK_SIZE);
     TEST_ASSERT_TRUE(chunk_1->free);
     TEST_ASSERT_EQUAL(new_chunk, large_head);
     TEST_ASSERT_EQUAL(chunk_2, chunk_1->next);
     TEST_ASSERT_EQUAL(LARGE_CHUNK_SIZE, new_chunk->size);
-    ft_free(addr_2);
-    ft_free(new_chunk->data);
+    free(addr_2);
+    free(new_chunk->data);
 }
 
 void realloc_smaller_new_size_test(size_t chunk_size) {
-    void *addr_1 = ft_realloc(NULL, chunk_size);
+    void *addr_1 = realloc(NULL, chunk_size);
     chunk_t chunk = addr_1 - CHUNK_METADATA_SIZE;
 
     TEST_ASSERT_EQUAL(chunk_size, chunk->size);
     realloc_fill_chunk(chunk);
-    void *addr = ft_realloc(addr_1, chunk_size / 2);
+    void *addr = realloc(addr_1, chunk_size / 2);
     realloc_fill_chunk_test(chunk, chunk->size);
     TEST_ASSERT_EQUAL(addr_1, addr);
     TEST_ASSERT_EQUAL(chunk_size / 2, chunk->size);
     TEST_ASSERT_EQUAL(addr_1 + chunk->size, chunk->next);
-    ft_free(addr);
+    free(addr);
 }
 
 void realloc_bigger_new_size_contiguous_no_gap_test(size_t chunk_size) {
@@ -155,21 +155,21 @@ void realloc_bigger_new_size_contiguous_no_gap_test(size_t chunk_size) {
     void *addr_1, *addr_2, *addr_3;
     chunk_t chunk_1, chunk_3;
 
-    addr_1 = ft_realloc(NULL, chunk_size);
-    addr_2 = ft_realloc(NULL, chunk_size);
-    addr_3 = ft_realloc(NULL, chunk_size);
+    addr_1 = realloc(NULL, chunk_size);
+    addr_2 = realloc(NULL, chunk_size);
+    addr_3 = realloc(NULL, chunk_size);
     chunk_1 = addr_1 - CHUNK_METADATA_SIZE;
     chunk_3 = addr_3 - CHUNK_METADATA_SIZE;
-    ft_free(addr_2);
+    free(addr_2);
     realloc_fill_chunk(chunk_1);
-    ft_realloc(addr_1, new_chunk_size);
+    realloc(addr_1, new_chunk_size);
     realloc_fill_chunk_test(chunk_1, chunk_size);
     TEST_ASSERT_EQUAL(new_chunk_size, chunk_1->size);
     TEST_ASSERT_EQUAL(chunk_3, chunk_1->next);
     TEST_ASSERT_EQUAL(chunk_1, chunk_3->prev);
     TEST_ASSERT_FALSE(chunk_1->free);
-    ft_free(addr_1);
-    ft_free(addr_3);
+    free(addr_1);
+    free(addr_3);
 }
 
 void realloc_bigger_new_size_contiguous_with_gap_test(size_t chunk_size) {
@@ -177,14 +177,14 @@ void realloc_bigger_new_size_contiguous_with_gap_test(size_t chunk_size) {
     void *addr_1, *addr_2, *addr_3;
     chunk_t chunk_1, chunk_2, chunk_3;
 
-    addr_1 = ft_realloc(NULL, chunk_size);
-    addr_2 = ft_realloc(NULL, chunk_size);
-    addr_3 = ft_realloc(NULL, chunk_size);
+    addr_1 = realloc(NULL, chunk_size);
+    addr_2 = realloc(NULL, chunk_size);
+    addr_3 = realloc(NULL, chunk_size);
     chunk_1 = addr_1 - CHUNK_METADATA_SIZE;
     chunk_3 = addr_3 - CHUNK_METADATA_SIZE;
-    ft_free(addr_2);
+    free(addr_2);
     realloc_fill_chunk(chunk_1);
-    ft_realloc(addr_1, new_chunk_size);
+    realloc(addr_1, new_chunk_size);
     realloc_fill_chunk_test(chunk_1, chunk_size);
     TEST_ASSERT_EQUAL(new_chunk_size, chunk_1->size);
     chunk_2 = chunk_1->next;
@@ -193,8 +193,8 @@ void realloc_bigger_new_size_contiguous_with_gap_test(size_t chunk_size) {
     TEST_ASSERT_EQUAL(ALIGN_SIZE, chunk_2->size);
     TEST_ASSERT_FALSE(chunk_1->free);
     TEST_ASSERT_TRUE(chunk_2->free);
-    ft_free(addr_1);
-    ft_free(addr_3);
+    free(addr_1);
+    free(addr_3);
 }
 
 void realloc_new_allocation_same_zone_test(size_t chunk_size) {
@@ -202,14 +202,14 @@ void realloc_new_allocation_same_zone_test(size_t chunk_size) {
     void *addr_1, *addr_2, *addr_3;
     chunk_t chunk_1, chunk_3, new_chunk;
 
-    addr_1 = ft_realloc(NULL, chunk_size / 4);
-    addr_2 = ft_realloc(NULL, chunk_size / 4);
-    addr_3 = ft_realloc(NULL, chunk_size / 4);
+    addr_1 = realloc(NULL, chunk_size / 4);
+    addr_2 = realloc(NULL, chunk_size / 4);
+    addr_3 = realloc(NULL, chunk_size / 4);
     chunk_1 = addr_1 - CHUNK_METADATA_SIZE;
     chunk_3 = addr_3 - CHUNK_METADATA_SIZE;
-    ft_free(addr_2);
+    free(addr_2);
     realloc_fill_chunk(chunk_1);
-    new_chunk = ft_realloc(addr_1, new_chunk_size) - CHUNK_METADATA_SIZE;
+    new_chunk = realloc(addr_1, new_chunk_size) - CHUNK_METADATA_SIZE;
     realloc_fill_chunk_test(new_chunk, chunk_size / 4);
     TEST_ASSERT_EQUAL(new_chunk_size, new_chunk->size);
     TEST_ASSERT_EQUAL(new_chunk, chunk_3->next);
@@ -217,8 +217,8 @@ void realloc_new_allocation_same_zone_test(size_t chunk_size) {
     TEST_ASSERT_EQUAL(new_chunk_size, new_chunk->size);
     TEST_ASSERT_TRUE(chunk_1->free);
     TEST_ASSERT_EQUAL(chunk_1->size, chunk_size / 2 + CHUNK_METADATA_SIZE);
-    ft_free(new_chunk->data);
-    ft_free(addr_3);
+    free(new_chunk->data);
+    free(addr_3);
 }
 
 void realloc_fill_chunk(chunk_t chunk) {
