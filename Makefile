@@ -5,11 +5,13 @@ BIN_DIR			:=	bin
 LIB_DIR			:=	lib
 
 .PHONY: all
-all:
+all: $(NAME)
+
+.PHONY: $(NAME)
+$(NAME): $(BUILD_DIR)
 	cmake --build $(BUILD_DIR)
 
-.PHONY: configure
-configure:
+$(BUILD_DIR):
 	cmake -S . -B $(BUILD_DIR)
 
 .PHONY: clean
@@ -24,15 +26,13 @@ fclean: clean
 
 .PHONY: re
 re: fclean
-	$(MAKE) configure
 	$(MAKE) all
 
-.PHONY: configure_test
-configure_test:
+$(BUILD_TEST_DIR):
 	cmake -S . -B $(BUILD_TEST_DIR) -DBUILD_TEST=ON
 
 .PHONY: build_test
-build_test:
+build_test: $(BUILD_TEST_DIR)
 	cmake --build $(BUILD_TEST_DIR)
 
 .PHONY: test

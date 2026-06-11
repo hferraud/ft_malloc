@@ -15,6 +15,7 @@ add_library(malloc SHARED)
 target_sources(malloc PRIVATE
         ${SRC_DIR}/malloc.c
         ${SRC_DIR}/realloc.c
+        ${SRC_DIR}/calloc.c
         ${SRC_DIR}/free.c
         ${SRC_DIR}/chunk.c
         ${SRC_DIR}/zone.c
@@ -30,6 +31,7 @@ target_compile_options(malloc PRIVATE
         -Wall
         -Werror
         -Wextra
+        -g3
 )
 
 option(BUILD_TEST "Build tests" OFF)
@@ -41,18 +43,4 @@ if(BUILD_TEST)
     include(CTest)
     enable_testing()
     add_subdirectory(test)
-else()
-    add_executable(main
-            ${SRC_DIR}/main.c
-            include/utils.h
-            src/utils.c
-    )
-
-    target_compile_options(main PRIVATE
-            -Wall
-            -Werror
-            -Wextra
-    )
-
-    target_link_libraries(main malloc)
 endif()
