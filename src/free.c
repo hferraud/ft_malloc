@@ -12,7 +12,7 @@
 #define ERROR_DOUBLE_FREE_MSG "free(): double free detected\n"
 #define ERROR_DOUBLE_FREE_LEN 29
 
-void ft_free(void *ptr) {
+void free(void *ptr) {
     chunk_t chunk;
     zone_t zone;
     zone_t *zone_head;

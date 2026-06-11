@@ -11,14 +11,14 @@
 #define ERROR_INVALID_PTR_MSG "realloc(): invalid pointer\n"
 #define ERROR_INVALID_PTR_LEN 27
 
-void *ft_realloc(void *ptr, size_t size) {
+void *realloc(void *ptr, size_t size) {
     chunk_t chunk;
     chunk_t new_chunk;
     zone_t  zone;
 
     size = ALIGN_MEM(size);
     if (ptr == NULL) {
-        return ft_malloc(size);
+        return malloc(size);
     }
     chunk = chunk_validate(ptr, &zone, NULL);
     if (chunk == NULL) {
@@ -43,7 +43,7 @@ void *ft_realloc(void *ptr, size_t size) {
         //We need to allocate a new block
         new_chunk = chunk_get(size);
         chunk_copy(chunk, new_chunk);
-        ft_free(ptr);
+        free(ptr);
         return new_chunk->data;
     }
     return ptr;

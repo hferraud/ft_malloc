@@ -3,10 +3,9 @@
 #include <unistd.h>
 
 #include "chunk.h"
-#include "zone.h"
 #include "def.h"
 
-void *ft_malloc(size_t size) {
+void *malloc(size_t size) {
     chunk_t chunk;
 
     size = ALIGN_MEM(size);
