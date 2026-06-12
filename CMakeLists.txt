@@ -10,7 +10,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 
-add_library(malloc SHARED)
+add_library(malloc SHARED
+        src/main.c)
 
 target_sources(malloc PRIVATE
         ${SRC_DIR}/malloc.c
@@ -43,4 +44,20 @@ if(BUILD_TEST)
     include(CTest)
     enable_testing()
     add_subdirectory(test)
+else()
+    add_executable(main
+            ${SRC_DIR}/main.c
+            include/utils.h
+            src/utils.c
+            src/calloc.c
+            include/calloc.h
+    )
+
+    target_compile_options(main PRIVATE
+            -Wall
+            -Werror
+            -Wextra
+    )
+
+    target_link_libraries(main malloc)
 endif()
