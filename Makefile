@@ -1,4 +1,8 @@
-NAME        	:=	malloc
+ifeq ($(HOSTTYPE),)
+	export HOSTTYPE=$(shell uname -m)_$(shell uname -s)
+endif
+
+NAME        	:=	libft_malloc_$(HOSTTYPE)
 BUILD_DIR   	:=	.build
 BUILD_TEST_DIR  :=	.build-test
 BIN_DIR			:=	bin
