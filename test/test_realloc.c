@@ -6,7 +6,7 @@
 #include "chunk.h"
 #include "def.h"
 #include "free.h"
-#include "zone.h"
+#include "memory.h"
 
 #define LARGE_CHUNK_SIZE (SMALL_CHUNK_SIZE * 8)
 
@@ -69,7 +69,7 @@ void test_realloc_large_new_size() {
     realloc_fill_chunk_test(chunk_2, chunk_2->size);
     TEST_ASSERT_NOT_EQUAL(addr_1, addr_2);
     TEST_ASSERT_EQUAL(LARGE_CHUNK_SIZE / 2, chunk_2->size);
-    TEST_ASSERT_EQUAL(chunk_2, large_head);
+    TEST_ASSERT_EQUAL(chunk_2, memory_g.large_head);
     free(addr_2);
 }
 
@@ -110,7 +110,7 @@ void test_realloc_tiny_new_allocation_new_zone() {
     new_chunk = realloc(addr_1, SMALL_CHUNK_SIZE) - CHUNK_METADATA_SIZE;
     realloc_fill_chunk_test(new_chunk, TINY_CHUNK_SIZE);
     TEST_ASSERT_TRUE(chunk_1->free);
-    TEST_ASSERT_EQUAL(new_chunk, small_head->data);
+    TEST_ASSERT_EQUAL(new_chunk, memory_g.small_head->data);
     TEST_ASSERT_EQUAL(chunk_2, chunk_1->next);
     TEST_ASSERT_EQUAL(SMALL_CHUNK_SIZE, new_chunk->size);
     free(addr_2);
@@ -129,7 +129,7 @@ void test_realloc_small_new_allocation_new_zone() {
     new_chunk = realloc(addr_1, LARGE_CHUNK_SIZE) - CHUNK_METADATA_SIZE;
     realloc_fill_chunk_test(new_chunk, SMALL_CHUNK_SIZE);
     TEST_ASSERT_TRUE(chunk_1->free);
-    TEST_ASSERT_EQUAL(new_chunk, large_head);
+    TEST_ASSERT_EQUAL(new_chunk, memory_g.large_head);
     TEST_ASSERT_EQUAL(chunk_2, chunk_1->next);
     TEST_ASSERT_EQUAL(LARGE_CHUNK_SIZE, new_chunk->size);
     free(addr_2);

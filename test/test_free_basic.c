@@ -3,6 +3,7 @@
 #include "free.h"
 #include "malloc.h"
 #include "chunk.h"
+#include "memory.h"
 
 #define LARGE_CHUNK_SIZE (SMALL_CHUNK_SIZE * 8)
 
@@ -82,7 +83,7 @@ void test_free_basic_large_next_chunk_freed(void) {
     addr2 = ft_malloc(CHUNK_SIZE);
     TEST_ASSERT_NOT_NULL(chunk1->next);
 
-    TEST_ASSERT_EQUAL(chunk1, large_head);
+    TEST_ASSERT_EQUAL(chunk1, memory_g.large_head);
     free(addr2);
     //Here the chunk should be unmapped
     //TODO: check if munmap was called
@@ -90,7 +91,7 @@ void test_free_basic_large_next_chunk_freed(void) {
     free(addr1);
     //Here the chunk should be unmapped
     //TODO: check if munmap was called
-    TEST_ASSERT_NULL(large_head);
+    TEST_ASSERT_NULL(memory_g.large_head);
 }
 
 void test_free_basic_large_prev_chunk_freed(void) {
@@ -104,14 +105,14 @@ void test_free_basic_large_prev_chunk_freed(void) {
     chunk2 = addr2 - CHUNK_METADATA_SIZE;
     TEST_ASSERT_NOT_NULL(chunk2->prev);
 
-    TEST_ASSERT_EQUAL(chunk1, large_head);
+    TEST_ASSERT_EQUAL(chunk1, memory_g.large_head);
     free(addr1);
     //Here the chunk should be unmapped
     //TODO: check if munmap was called
     TEST_ASSERT_NULL(chunk2->prev);
-    TEST_ASSERT_EQUAL(chunk2, large_head);
+    TEST_ASSERT_EQUAL(chunk2, memory_g.large_head);
     free(addr2);
     //Here the chunk should be unmapped
     //TODO: check if munmap was called
-    TEST_ASSERT_NULL(large_head);
+    TEST_ASSERT_NULL(memory_g.large_head);
 }
