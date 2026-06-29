@@ -5,9 +5,6 @@
 #include "chunk.h"
 #include "utils.h"
 
-zone_t tiny_head = NULL;
-zone_t small_head = NULL;
-
 /**
  * @brief Create a new zone
  * @param last The last zone search, new zone will be placed next

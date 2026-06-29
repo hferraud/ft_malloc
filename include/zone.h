@@ -21,7 +21,4 @@ chunk_t zone_search(zone_t z_head, zone_t *z_last, size_t size);
 zone_t  zone_validate(uintptr_t addr, zone_t head);
 chunk_t zone_get_chunk(zone_t zone);
 
-extern zone_t tiny_head;
-extern zone_t small_head;
-
 #endif //ZONE_H

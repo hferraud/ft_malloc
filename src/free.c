@@ -6,6 +6,7 @@
 
 #include "chunk.h"
 #include "zone.h"
+#include "memory.h"
 
 #define ERROR_INVALID_PTR_MSG "free(): invalid pointer\n"
 #define ERROR_INVALID_PTR_LEN 24
@@ -30,8 +31,8 @@ void free(void *ptr) {
         return;
     }
     if (zone == NULL) {
-        if (chunk == large_head) {
-            large_head = chunk->next;
+        if (chunk == memory_g.large_head) {
+            memory_g.large_head = chunk->next;
         }
         if (chunk->prev) {
             chunk->prev->next = chunk->next;

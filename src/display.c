@@ -1,11 +1,13 @@
 #include "display.h"
 
 #include <stdio.h>
-#include <zone.h>
-#include <chunk.h>
 #include <ctype.h>
 #include <stdbool.h>
 #include <string.h>
+
+#include "memory.h"
+#include "chunk.h"
+#include "zone.h"
 
 #define HEXDUMP_WORD_SIZE 16
 
@@ -19,17 +21,17 @@ static void hexdump_print_ascii(uint8_t *data);
 
 void display_memory(void) {
     printf("--------------------\n");
-    if (tiny_head) {
-        printf("TINY : %p\n", tiny_head->data);
-        zone_display_memory(tiny_head);
+    if (memory_g.tiny_head) {
+        printf("TINY : %p\n", memory_g.tiny_head->data);
+        zone_display_memory(memory_g.tiny_head);
     }
-    if (small_head) {
-        printf("SMALL: %p\n", small_head->data);
-        zone_display_memory(small_head);
+    if (memory_g.small_head) {
+        printf("SMALL: %p\n", memory_g.small_head->data);
+        zone_display_memory(memory_g.small_head);
     }
-    if (large_head) {
-        printf("LARGE : %p\n", large_head);
-        chunk_display_memory(large_head);
+    if (memory_g.large_head) {
+        printf("LARGE : %p\n", memory_g.large_head);
+        chunk_display_memory(memory_g.large_head);
     }
     printf("--------------------\n");
 }
@@ -53,17 +55,17 @@ static void chunk_display_memory(chunk_t chunk) {
 }
 
 void display_memory_ex(void) {
-    if (tiny_head) {
+    if (memory_g.tiny_head) {
         printf("--------------- TINY HEAD ---------------\n");
-        zone_display_memory_ex(tiny_head);
+        zone_display_memory_ex(memory_g.tiny_head);
     }
-    if (small_head) {
+    if (memory_g.small_head) {
         printf("--------------- SMALL HEAD ---------------\n");
-        zone_display_memory_ex(small_head);
+        zone_display_memory_ex(memory_g.small_head);
     }
-    if (large_head) {
+    if (memory_g.large_head) {
         printf("--------------- CHUNK HEAD ---------------\n");
-        chunk_display_memory_ex(large_head);
+        chunk_display_memory_ex(memory_g.large_head);
     }
 }
 

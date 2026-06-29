@@ -3,6 +3,7 @@
 #include "zone.h"
 #include "def.h"
 #include "utils.h"
+#include "memory.h"
 
 #define MAGIC_SERIALIZE(x) (x << 8)
 #define MAGIC_DESERIALIZE(x) (x >> 8)
@@ -10,8 +11,6 @@
 static void     chunk_copy8(chunk_t src, chunk_t dst);
 static void     chunk_copy16(chunk_t src, chunk_t dst);
 static void     chunk_copy32(chunk_t src, chunk_t dst);
-
-chunk_t large_head = NULL;
 
 chunk_t chunk_get(size_t size) {
     zone_t *zone_head;
@@ -21,9 +20,9 @@ chunk_t chunk_get(size_t size) {
 
     zone_head = NULL;
     if (size <= TINY_CHUNK_SIZE) {
-        zone_head = &tiny_head;
+        zone_head = &memory_g.tiny_head;
     } else if (size <= SMALL_CHUNK_SIZE) {
-        zone_head = &small_head;
+        zone_head = &memory_g.small_head;
     }
 
     if (zone_head != NULL) {
@@ -48,7 +47,7 @@ chunk_t chunk_get(size_t size) {
             return NULL;
         }
         chunk_init(chunk, size);
-        chunk_push_back(&large_head, chunk);
+        chunk_push_back(&memory_g.large_head, chunk);
     }
     return chunk;
 }
@@ -106,15 +105,15 @@ chunk_t  chunk_validate(void *addr, zone_t *zone, zone_t **zone_head) {
     uintptr_t data;
     //we check if the address is in a tiny zone
     if (zone_head) {
-        *zone_head = &tiny_head;
+        *zone_head = &memory_g.tiny_head;
     }
-    *zone = zone_validate((uintptr_t)addr, tiny_head);
+    *zone = zone_validate((uintptr_t)addr, memory_g.tiny_head);
     if (*zone == NULL) {
         //if not we check the small zone
         if (zone_head) {
-            *zone_head = &small_head;
+            *zone_head = &memory_g.small_head;
         }
-        *zone = zone_validate((uintptr_t)addr, small_head);
+        *zone = zone_validate((uintptr_t)addr, memory_g.small_head);
     }
 
     // we deserialize chunk->magic to remove chunk->free

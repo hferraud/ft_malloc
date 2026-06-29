@@ -28,7 +28,8 @@ add_custom_target(create_symlink ALL
 )
 
 add_library(malloc SHARED
-        src/main.c)
+        src/main.c
+)
 
 target_sources(malloc PRIVATE
         ${SRC_DIR}/malloc.c
@@ -39,6 +40,7 @@ target_sources(malloc PRIVATE
         ${SRC_DIR}/zone.c
         ${SRC_DIR}/display.c
         ${SRC_DIR}/utils.c
+        ${SRC_DIR}/memory.c
 )
 
 target_include_directories(malloc PUBLIC
@@ -71,6 +73,8 @@ else()
             src/utils.c
             src/calloc.c
             include/calloc.h
+            include/memory.h
+            src/memory.c
     )
 
     target_compile_options(main PRIVATE

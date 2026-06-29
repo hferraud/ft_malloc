@@ -23,8 +23,6 @@ struct chunk_s {
     uint8_t         data[1];
 };
 
-extern chunk_t large_head;
-
 chunk_t     chunk_get(size_t size);
 void        chunk_init(chunk_t chunk, size_t size);
 chunk_t     chunk_new(size_t size);
